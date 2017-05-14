@@ -84,6 +84,8 @@ public class StundenRechener {
                 }else {
                     return 3;
                 }
+            case "ZK":
+                return 3;
             case "LK":
                 return 5;
             default:
