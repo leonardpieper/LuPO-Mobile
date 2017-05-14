@@ -248,6 +248,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * Öffnet den Android-"Explorer".
+     * Es sind nur Dateien des Typs "application" erlaubt auszuwählen.
+     * @param view View ist der Android-Explorer
+     */
     public void openFilePicker(View view) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -257,6 +262,16 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    /**
+     * Fügt eine Reihe in das tableLayout ein.
+     * @param fachKrz Fachkrz ist die Kurzform des Faches
+     * @param kursart_E1 Kursart_E1 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param kursart_E2 Kursart_E2 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param kursart_Q1 Kursart_Q1 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param kursart_Q2 Kursart_Q2 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param kursart_Q3 Kursart_Q3 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param kursart_Q4 Kursart_Q4 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     */
     private void addRow(String fachKrz, String kursart_E1, String kursart_E2, String kursart_Q1,
                         String kursart_Q2, String kursart_Q3, String kursart_Q4){
 
@@ -318,6 +333,10 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    /**
+     * Öffnet einen Dialog, indem man ein neues Fach in seine Laufbahn eintragen kann.
+     * Unterschieden wird hier zwischen mündlich, schriftlich und LK.
+     */
     private void openAddKursDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setView(R.layout.dialog_add_kurs);
@@ -433,6 +452,16 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    /**
+     * Fügt einen Kurs in die Datenbank ein.
+     * @param fach Fach ist der Fachname
+     * @param e1Type E1Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param e2Type E2Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param q1Type Q1Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param q2Type Q2Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param q3Type Q3Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param q4Type Q4Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     */
     private void addKurs(String fach, String e1Type, String e2Type,
                          String q1Type, String q2Type,
                          String q3Type, String q4Type){
@@ -476,7 +505,7 @@ public class MainActivity extends AppCompatActivity
      * Öffnet die Datenbank, wenn eine über den Button ausgewählt wurde.
      * Der Pfad zu der Datenank wird in "dbFileName" gespeichert.
      * Setzt die Datenbank auf AutoSync --> Daten werden bei jedem Schreibvorgang gespeichert.
-     * @throws IOException
+     * @throws IOException Wenn keine Datenbankdatei gefunden wurde wird eine IOException zurückgegeben.
      */
     private void openLupoDatabase() throws IOException {
         SharedPreferences sharedPreferences = getSharedPreferences(
@@ -497,7 +526,8 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Synchronisiert die lupoDatabase mit dem TableLayout
-     * @throws IOException
+     * @throws IOException Wenn die Tabelle "ABP_SchuelerFaecher" nicht
+     * in der Datenbank "lupoDatabase" gefunden wurde wird eine IOExpection zurückgegeben.
      */
     private void refreshUI() throws IOException {
         tableLayout.removeAllViews();
