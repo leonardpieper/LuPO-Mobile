@@ -30,7 +30,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/tableLayoutMain"
-            android:stretchColumns="*">
+            android:stretchColumns="*"
+            android:collapseColumns="true">
         </TableLayout>
     </ScrollView>
 </RelativeLayout>

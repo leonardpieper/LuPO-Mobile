@@ -36,6 +36,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.github.leonardpieper.lupo_mobile.tools.StundenRechener;
 import com.healthmarketscience.jackcess.Column;
 import com.healthmarketscience.jackcess.Cursor;
 import com.healthmarketscience.jackcess.CursorBuilder;
@@ -102,6 +103,7 @@ public class MainActivity extends AppCompatActivity
 
         try {
             openLupoDatabase();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -661,8 +663,8 @@ public class MainActivity extends AppCompatActivity
         Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
 
         //Die UI-Table wird nach der vorgegebenen Sortierung der Lupo-Datenbank sortiert.
-        for(Row row : CursorBuilder.createCursor(table.getIndex("Sortierung"))){
-//        for (Row row : table) {
+//        for(Row row : CursorBuilder.createCursor(table.getIndex("Sortierung"))){
+        for (Row row : table) {
             Column fachKrz = table.getColumn("FachKrz");
             Column kursartE1 = table.getColumn("Kursart_E1");
             Column kursartE2 = table.getColumn("Kursart_E2");
@@ -691,13 +693,57 @@ public class MainActivity extends AppCompatActivity
                     sValueKursartQ1, sValueKursartQ2, sValueKursartQ3,
                     sValueKursartQ4);
         }
+        refreshWochenStunden();
+    }
+
+    /**
+     * Berechnet die Wochenstunden und zeigt sie unten in der BottomBar an.
+     * Das ganze erfolgt asynchron, damit keine lange Ladezeit beim
+     * starten der App und updaten der UI erfolgt.
+     */
+    private void refreshWochenStunden(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StundenRechener stundenRechener = new StundenRechener(lupoDatabase);
+                    final String wochenStundenE1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E1"));
+                    final String wochenStundenE2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E2"));
+                    final String wochenStundenQ1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q1"));
+                    final String wochenStundenQ2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q2"));
+                    final String wochenStundenQ3 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q3"));
+                    final String wochenStundenQ4 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q4"));
+
+                    final String durchscnittE = String.valueOf(stundenRechener.getPhasenstunden(0));
+                    final String durchscnittQ = String.valueOf(stundenRechener.getPhasenstunden(1));
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((TextView)findViewById(R.id.tvInfoWochenStdE1)).setText(wochenStundenE1);
+                            ((TextView)findViewById(R.id.tvInfoWochenStdE2)).setText(wochenStundenE2);
+                            ((TextView)findViewById(R.id.tvInfoWochenStdQ1)).setText(wochenStundenQ1);
+                            ((TextView)findViewById(R.id.tvInfoWochenStdQ2)).setText(wochenStundenQ2);
+                            ((TextView)findViewById(R.id.tvInfoWochenStdQ3)).setText(wochenStundenQ3);
+                            ((TextView)findViewById(R.id.tvInfoWochenStdQ4)).setText(wochenStundenQ4);
+
+                            ((TextView)findViewById(R.id.tvInfoDurchStdE)).setText("E-Phase: " + durchscnittE);
+                            ((TextView)findViewById(R.id.tvInfoDurchStdQ)).setText("Q-Phase: " + durchscnittQ);
+
+                        }
+                    });
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     /**
      * Prüft ob ein LK in einem Fach gewählt werden kann
      * @param fach Der zu prüfende Fachname
      * @return Ob das Fach als LK gewählt werden kann
-     * @throws IOException Wenn die Tabelle "ABP_SchuelerFaecher" nicht
+     * @throws IOException Wenn die Tabelle "ABP_Faecher" nicht
      * in der Datenbank "lupoDatabase" gefunden wurde wird eine IOExpection zurückgegeben.
      */
     private boolean isLKAvailable(String fach) throws IOException {
