@@ -23,10 +23,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -346,7 +348,7 @@ public class MainActivity extends AppCompatActivity
 
 
 
-        List<String> faecher = new ArrayList<>();
+        final List<String> faecher = new ArrayList<>();
 
         try {
             Table table = lupoDatabase.getTable("ABP_Faecher");
@@ -365,10 +367,11 @@ public class MainActivity extends AppCompatActivity
         }
 
         final Spinner kursSpinner = (Spinner) ((AlertDialog)dialog).findViewById(R.id.spinner_Kurse);
-        ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, faecher);
+        final ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, faecher);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         kursSpinner.setAdapter(spinnerArrayAdapter);
 
+        final TextView tvTitleExtra = (TextView)dialog.findViewById(R.id.tvDialogAddKursExtra);
         final RadioGroup grpe1 = (RadioGroup)dialog.findViewById(R.id.radioGrpEF1);
         final RadioGroup grpe2 = (RadioGroup)dialog.findViewById(R.id.radioGrpEF2);
         final RadioGroup grpq1 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ1);
@@ -376,27 +379,138 @@ public class MainActivity extends AppCompatActivity
         final RadioGroup grpq3 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ3);
         final RadioGroup grpq4 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ4);
 
-        CheckBox isLK = (CheckBox)dialog.findViewById(R.id.checkBoxIsLK);
+        final CheckBox isLK = (CheckBox)dialog.findViewById(R.id.checkBoxIsLK);
+        final CheckBox isZK = (CheckBox)dialog.findViewById(R.id.checkBoxIsZK);
+
+        final LinearLayout llLK = (LinearLayout)dialog.findViewById(R.id.llIsLK);
+        final LinearLayout llZK = (LinearLayout)dialog.findViewById(R.id.llIsZK);
+
+
+
+        kursSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                System.out.println(spinnerArrayAdapter.getItem(position));
+
+                //Das Layout wird zurückgesetzt
+                llZK.setVisibility(View.GONE);
+                isLK.setEnabled(true);
+                isLK.setChecked(false);
+
+                tvTitleExtra.setVisibility(View.INVISIBLE);
+
+                for(int i = 0; i< grpq1.getChildCount() -1; i++){
+                    grpq1.getChildAt(i).setEnabled(true);
+                }
+                for(int i = 0; i< grpq2.getChildCount() -1; i++){
+                    grpq2.getChildAt(i).setEnabled(true);
+                }
+                for(int i = 0; i< grpq3.getChildCount() -1; i++){
+                    grpq3.getChildAt(i).setEnabled(true);
+                }
+                for(int i = 0; i< grpq4.getChildCount() -1; i++){
+                    grpq4.getChildAt(i).setEnabled(true);
+                }
+                grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.INVISIBLE);
+                grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.INVISIBLE);
+                grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
+                grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
+
+                if(spinnerArrayAdapter.getItem(position).equals("Geschichte") ||
+                        spinnerArrayAdapter.getItem(position).equals("Sozialwissenschaften")){
+
+                    llZK.setVisibility(View.VISIBLE);
+                    isZK.setChecked(false);
+                }
+
+
+                try {
+                    if(!isLKAvailable(spinnerArrayAdapter.getItem(position))){
+                        llLK.setVisibility(View.GONE);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         isLK.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                if(isChecked){
 
-                for(int i = 0; i< grpq1.getChildCount(); i++){
+                //GetChildCount()-1 damit der LK-RadioButton nicht ausgegraut wird.
+                for(int i = 0; i< grpq1.getChildCount() -1; i++){
                     grpq1.getChildAt(i).setEnabled(!isChecked);
                 }
-                for(int i = 0; i< grpq2.getChildCount(); i++){
+                for(int i = 0; i< grpq2.getChildCount() -1; i++){
                     grpq2.getChildAt(i).setEnabled(!isChecked);
                 }
-                for(int i = 0; i< grpq3.getChildCount(); i++){
+                for(int i = 0; i< grpq3.getChildCount() -1; i++){
                     grpq3.getChildAt(i).setEnabled(!isChecked);
                 }
-                for(int i = 0; i< grpq4.getChildCount(); i++){
+                for(int i = 0; i< grpq4.getChildCount() -1; i++){
                     grpq4.getChildAt(i).setEnabled(!isChecked);
                 }
-//                }else {
 
-//                }
+                if(isChecked){
+                    grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.VISIBLE);
+                    grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.VISIBLE);
+                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.VISIBLE);
+                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.VISIBLE);
+                    tvTitleExtra.setVisibility(View.VISIBLE);
+
+                    ((RadioButton)grpq1.getChildAt(grpq1.getChildCount()-1)).setChecked(true);
+                    ((RadioButton)grpq2.getChildAt(grpq2.getChildCount()-1)).setChecked(true);
+                    ((RadioButton)grpq3.getChildAt(grpq3.getChildCount()-1)).setChecked(true);
+                    ((RadioButton)grpq4.getChildAt(grpq4.getChildCount()-1)).setChecked(true);
+
+                    tvTitleExtra.setText("LK");
+
+                    isZK.setEnabled(false);
+                }else {
+                    grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.INVISIBLE);
+                    grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.INVISIBLE);
+                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
+                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
+                    tvTitleExtra.setVisibility(View.INVISIBLE);
+
+                    isZK.setEnabled(true);
+                }
+            }
+        });
+
+        isZK.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                //GetChildCount()-1 damit der LK-RadioButton nicht ausgegraut wird.
+                for(int i = 0; i< grpq3.getChildCount() -1; i++){
+                    grpq3.getChildAt(i).setEnabled(!isChecked);
+                }
+                for(int i = 0; i< grpq4.getChildCount() -1; i++){
+                    grpq4.getChildAt(i).setEnabled(!isChecked);
+                }
+
+                if(isChecked) {
+                    grpq3.getChildAt(grpq3.getChildCount() - 1).setVisibility(View.VISIBLE);
+                    grpq4.getChildAt(grpq4.getChildCount() - 1).setVisibility(View.VISIBLE);
+                    tvTitleExtra.setVisibility(View.VISIBLE);
+
+                    ((RadioButton)grpq3.getChildAt(grpq3.getChildCount()-1)).setChecked(true);
+                    ((RadioButton)grpq4.getChildAt(grpq4.getChildCount()-1)).setChecked(true);
+
+                    tvTitleExtra.setText("ZK");
+                    isLK.setEnabled(false);
+                }else {
+                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
+                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
+                    tvTitleExtra.setVisibility(View.INVISIBLE);
+                    isLK.setEnabled(true);
+                }
             }
         });
 
@@ -443,6 +557,19 @@ public class MainActivity extends AppCompatActivity
                     q3Type = (String)rbQ3.getTag();
                 }if(rbQ4!=null){
                     q4Type = (String)rbQ4.getTag();
+                }
+
+                //Wenn das Fach als ZK oder LK angegeben wurde werden hier alle anderen Werte ggf. überschrieben!
+                //LK überschreibt ZK!
+                if(isZK.isChecked()){
+                    q3Type = "ZK";
+                    q4Type = "ZK";
+                }
+                if(isLK.isChecked()){
+                    q1Type = "LK";
+                    q2Type = "LK";
+                    q3Type = "LK";
+                    q4Type = "LK";
                 }
 
 
@@ -532,7 +659,10 @@ public class MainActivity extends AppCompatActivity
     private void refreshUI() throws IOException {
         tableLayout.removeAllViews();
         Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
-        for (Row row : table) {
+
+        //Die UI-Table wird nach der vorgegebenen Sortierung der Lupo-Datenbank sortiert.
+        for(Row row : CursorBuilder.createCursor(table.getIndex("Sortierung"))){
+//        for (Row row : table) {
             Column fachKrz = table.getColumn("FachKrz");
             Column kursartE1 = table.getColumn("Kursart_E1");
             Column kursartE2 = table.getColumn("Kursart_E2");
@@ -561,5 +691,25 @@ public class MainActivity extends AppCompatActivity
                     sValueKursartQ1, sValueKursartQ2, sValueKursartQ3,
                     sValueKursartQ4);
         }
+    }
+
+    /**
+     * Prüft ob ein LK in einem Fach gewählt werden kann
+     * @param fach Der zu prüfende Fachname
+     * @return Ob das Fach als LK gewählt werden kann
+     * @throws IOException Wenn die Tabelle "ABP_SchuelerFaecher" nicht
+     * in der Datenbank "lupoDatabase" gefunden wurde wird eine IOExpection zurückgegeben.
+     */
+    private boolean isLKAvailable(String fach) throws IOException {
+        Table table = lupoDatabase.getTable("ABP_Faecher");
+        Cursor cursor = CursorBuilder.createCursor(table);
+        boolean found = cursor.findFirstRow(Collections.singletonMap("Bezeichnung", fach));
+        if(found){
+            Row row = cursor.getCurrentRow();
+            if(row.get("LK_Moegl").equals("J")){
+                return true;
+            }
+        }
+        return false;
     }
 }

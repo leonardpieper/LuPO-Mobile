@@ -17,7 +17,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp">
+        android:layout_marginBottom="20dp"
+        android:id="@+id/llIsLK">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -28,6 +29,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/checkBoxIsLK"
+            android:layout_marginLeft="20dp"
+            android:gravity="center"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:id="@+id/llIsZK"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Fach als ZK in der Q2"
+            android:textSize="16sp"
+            android:gravity="center"/>
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/checkBoxIsZK"
             android:layout_marginLeft="20dp"
             android:gravity="center"/>
     </LinearLayout>
@@ -54,6 +74,13 @@
                     android:layout_height="match_parent"
                     android:text="schriftl."
                     android:layout_marginLeft="20dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:id="@+id/tvDialogAddKursExtra"
+                    android:text="LK"
+                    android:layout_marginLeft="20dp"
+                    android:visibility="invisible"/>
             </LinearLayout>
         </TableRow>
         <TableRow
@@ -138,6 +165,13 @@
                     android:id="@+id/radioQ1S"
                     android:tag="S"
                     android:layout_marginLeft="25dp"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/radioQ1E"
+                    android:tag="E"
+                    android:layout_marginLeft="25dp"
+                    android:visibility="invisible"/>
             </RadioGroup>
         </TableRow>
         <TableRow
@@ -163,9 +197,16 @@
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/radioQ1S"
+                    android:id="@+id/radioQ2S"
                     android:tag="S"
                     android:layout_marginLeft="25dp"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/radioQ2E"
+                    android:tag="E"
+                    android:layout_marginLeft="25dp"
+                    android:visibility="invisible"/>
             </RadioGroup>
         </TableRow>
         <TableRow
@@ -191,9 +232,16 @@
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/radioQ1S"
+                    android:id="@+id/radioQ3S"
                     android:tag="S"
                     android:layout_marginLeft="25dp"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/radioQ3E"
+                    android:tag="E"
+                    android:layout_marginLeft="25dp"
+                    android:visibility="invisible"/>
             </RadioGroup>
         </TableRow>
         <TableRow
@@ -222,6 +270,13 @@
                     android:id="@+id/radioQ4S"
                     android:tag="S"
                     android:layout_marginLeft="25dp"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/radioQ4E"
+                    android:tag="E"
+                    android:layout_marginLeft="25dp"
+                    android:visibility="invisible"/>
             </RadioGroup>
         </TableRow>
 
