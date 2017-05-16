@@ -11,10 +11,12 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -92,13 +94,13 @@ public class MainActivity extends AppCompatActivity
                 .addToBackStack(null)
                 .commit();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openAddKursDialog();
-            }
-        });
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                openAddKursDialog();
+//            }
+//        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -128,6 +130,11 @@ public class MainActivity extends AppCompatActivity
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -171,16 +178,9 @@ public class MainActivity extends AppCompatActivity
                     .addToBackStack(null)
                     .commit();
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
         } else if (id == R.id.nav_share) {
 
-        } else if (id == R.id.nav_send) {
-
         }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -373,245 +373,245 @@ public class MainActivity extends AppCompatActivity
      * Öffnet einen Dialog, indem man ein neues Fach in seine Laufbahn eintragen kann.
      * Unterschieden wird hier zwischen mündlich, schriftlich und LK.
      */
-    private void openAddKursDialog(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setView(R.layout.dialog_add_kurs);
-        builder.setTitle("Fach hinzufügen");
-        final AlertDialog dialog = builder.create();
-        dialog.show();
-
-
-
-        final List<String> faecher = new ArrayList<>();
-
-        try {
-            Table table = lupoDatabase.getTable("ABP_Faecher");
-            for(Row row : table){
-                Column colFachKrzl = table.getColumn("FachKrz");
-                Column colBezeichnung = table.getColumn("Bezeichnung");
-
-                Object fachKrzl = row.get(colFachKrzl.getName());
-                Object bezeichnung = row.get(colBezeichnung.getName());
-
-                String sBezeichnung = Objects.toString(bezeichnung, "");
-                faecher.add(sBezeichnung);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        final Spinner kursSpinner = (Spinner) ((AlertDialog)dialog).findViewById(R.id.spinner_Kurse);
-        final ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, faecher);
-        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        kursSpinner.setAdapter(spinnerArrayAdapter);
-
-        final TextView tvTitleExtra = (TextView)dialog.findViewById(R.id.tvDialogAddKursExtra);
-        final RadioGroup grpe1 = (RadioGroup)dialog.findViewById(R.id.radioGrpEF1);
-        final RadioGroup grpe2 = (RadioGroup)dialog.findViewById(R.id.radioGrpEF2);
-        final RadioGroup grpq1 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ1);
-        final RadioGroup grpq2 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ2);
-        final RadioGroup grpq3 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ3);
-        final RadioGroup grpq4 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ4);
-
-        final CheckBox isLK = (CheckBox)dialog.findViewById(R.id.checkBoxIsLK);
-        final CheckBox isZK = (CheckBox)dialog.findViewById(R.id.checkBoxIsZK);
-
-        final LinearLayout llLK = (LinearLayout)dialog.findViewById(R.id.llIsLK);
-        final LinearLayout llZK = (LinearLayout)dialog.findViewById(R.id.llIsZK);
-
-
-
-        kursSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                System.out.println(spinnerArrayAdapter.getItem(position));
-
-                //Das Layout wird zurückgesetzt
-                llZK.setVisibility(View.GONE);
-                isLK.setEnabled(true);
-                isLK.setChecked(false);
-
-                tvTitleExtra.setVisibility(View.INVISIBLE);
-
-                for(int i = 0; i< grpq1.getChildCount() -1; i++){
-                    grpq1.getChildAt(i).setEnabled(true);
-                }
-                for(int i = 0; i< grpq2.getChildCount() -1; i++){
-                    grpq2.getChildAt(i).setEnabled(true);
-                }
-                for(int i = 0; i< grpq3.getChildCount() -1; i++){
-                    grpq3.getChildAt(i).setEnabled(true);
-                }
-                for(int i = 0; i< grpq4.getChildCount() -1; i++){
-                    grpq4.getChildAt(i).setEnabled(true);
-                }
-                grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.INVISIBLE);
-                grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.INVISIBLE);
-                grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
-                grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
-
-                if(spinnerArrayAdapter.getItem(position).equals("Geschichte") ||
-                        spinnerArrayAdapter.getItem(position).equals("Sozialwissenschaften")){
-
-                    llZK.setVisibility(View.VISIBLE);
-                    isZK.setChecked(false);
-                }
-
-
-                try {
-                    if(!isLKAvailable(spinnerArrayAdapter.getItem(position))){
-                        llLK.setVisibility(View.GONE);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-        isLK.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-                //GetChildCount()-1 damit der LK-RadioButton nicht ausgegraut wird.
-                for(int i = 0; i< grpq1.getChildCount() -1; i++){
-                    grpq1.getChildAt(i).setEnabled(!isChecked);
-                }
-                for(int i = 0; i< grpq2.getChildCount() -1; i++){
-                    grpq2.getChildAt(i).setEnabled(!isChecked);
-                }
-                for(int i = 0; i< grpq3.getChildCount() -1; i++){
-                    grpq3.getChildAt(i).setEnabled(!isChecked);
-                }
-                for(int i = 0; i< grpq4.getChildCount() -1; i++){
-                    grpq4.getChildAt(i).setEnabled(!isChecked);
-                }
-
-                if(isChecked){
-                    grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.VISIBLE);
-                    grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.VISIBLE);
-                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.VISIBLE);
-                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.VISIBLE);
-                    tvTitleExtra.setVisibility(View.VISIBLE);
-
-                    ((RadioButton)grpq1.getChildAt(grpq1.getChildCount()-1)).setChecked(true);
-                    ((RadioButton)grpq2.getChildAt(grpq2.getChildCount()-1)).setChecked(true);
-                    ((RadioButton)grpq3.getChildAt(grpq3.getChildCount()-1)).setChecked(true);
-                    ((RadioButton)grpq4.getChildAt(grpq4.getChildCount()-1)).setChecked(true);
-
-                    tvTitleExtra.setText("LK");
-
-                    isZK.setEnabled(false);
-                }else {
-                    grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.INVISIBLE);
-                    grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.INVISIBLE);
-                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
-                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
-                    tvTitleExtra.setVisibility(View.INVISIBLE);
-
-                    isZK.setEnabled(true);
-                }
-            }
-        });
-
-        isZK.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                //GetChildCount()-1 damit der LK-RadioButton nicht ausgegraut wird.
-                for(int i = 0; i< grpq3.getChildCount() -1; i++){
-                    grpq3.getChildAt(i).setEnabled(!isChecked);
-                }
-                for(int i = 0; i< grpq4.getChildCount() -1; i++){
-                    grpq4.getChildAt(i).setEnabled(!isChecked);
-                }
-
-                if(isChecked) {
-                    grpq3.getChildAt(grpq3.getChildCount() - 1).setVisibility(View.VISIBLE);
-                    grpq4.getChildAt(grpq4.getChildCount() - 1).setVisibility(View.VISIBLE);
-                    tvTitleExtra.setVisibility(View.VISIBLE);
-
-                    ((RadioButton)grpq3.getChildAt(grpq3.getChildCount()-1)).setChecked(true);
-                    ((RadioButton)grpq4.getChildAt(grpq4.getChildCount()-1)).setChecked(true);
-
-                    tvTitleExtra.setText("ZK");
-                    isLK.setEnabled(false);
-                }else {
-                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
-                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
-                    tvTitleExtra.setVisibility(View.INVISIBLE);
-                    isLK.setEnabled(true);
-                }
-            }
-        });
-
-
-
-        Button finishBtn = (Button) dialog.findViewById(R.id.btn_add_kurs_finish);
-        finishBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int selE1Id = grpe1.getCheckedRadioButtonId();
-                int selE2Id = grpe2.getCheckedRadioButtonId();
-                int selQ1Id = grpq1.getCheckedRadioButtonId();
-                int selQ2Id = grpq2.getCheckedRadioButtonId();
-                int selQ3Id = grpq3.getCheckedRadioButtonId();
-                int selQ4Id = grpq4.getCheckedRadioButtonId();
-
-                RadioButton rbE1 = (RadioButton)dialog.findViewById(selE1Id);
-                RadioButton rbE2 = (RadioButton)dialog.findViewById(selE2Id);
-                RadioButton rbQ1 = (RadioButton)dialog.findViewById(selQ1Id);
-                RadioButton rbQ2 = (RadioButton)dialog.findViewById(selQ2Id);
-                RadioButton rbQ3 = (RadioButton)dialog.findViewById(selQ3Id);
-                RadioButton rbQ4 = (RadioButton)dialog.findViewById(selQ4Id);
-
-                String e1Type = "";
-                String e2Type = "";
-                String q1Type = "";
-                String q2Type = "";
-                String q3Type = "";
-                String q4Type = "";
-
-                if(rbE1!=null){
-                    e1Type = (String)rbE1.getTag();
-                }
-                if(rbE2!=null){
-                    e2Type = (String)rbE2.getTag();
-                }
-                if(rbQ1!=null){
-                    q1Type = (String)rbQ1.getTag();
-                }
-                if(rbQ2!=null){
-                    q2Type = (String)rbQ2.getTag();
-                }
-                if(rbQ3!=null){
-                    q3Type = (String)rbQ3.getTag();
-                }if(rbQ4!=null){
-                    q4Type = (String)rbQ4.getTag();
-                }
-
-                //Wenn das Fach als ZK oder LK angegeben wurde werden hier alle anderen Werte ggf. überschrieben!
-                //LK überschreibt ZK!
-                if(isZK.isChecked()){
-                    q3Type = "ZK";
-                    q4Type = "ZK";
-                }
-                if(isLK.isChecked()){
-                    q1Type = "LK";
-                    q2Type = "LK";
-                    q3Type = "LK";
-                    q4Type = "LK";
-                }
-
-
-                String fach = kursSpinner.getItemAtPosition(kursSpinner.getSelectedItemPosition()).toString();
-                addKurs(fach, e1Type, e2Type, q1Type, q2Type, q3Type, q4Type);
-            }
-        });
-    }
+//    private void openAddKursDialog(){
+//        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//        builder.setView(R.layout.dialog_add_kurs);
+//        builder.setTitle("Fach hinzufügen");
+//        final AlertDialog dialog = builder.create();
+//        dialog.show();
+//
+//
+//
+//        final List<String> faecher = new ArrayList<>();
+//
+//        try {
+//            Table table = lupoDatabase.getTable("ABP_Faecher");
+//            for(Row row : table){
+//                Column colFachKrzl = table.getColumn("FachKrz");
+//                Column colBezeichnung = table.getColumn("Bezeichnung");
+//
+//                Object fachKrzl = row.get(colFachKrzl.getName());
+//                Object bezeichnung = row.get(colBezeichnung.getName());
+//
+//                String sBezeichnung = Objects.toString(bezeichnung, "");
+//                faecher.add(sBezeichnung);
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        final Spinner kursSpinner = (Spinner) ((AlertDialog)dialog).findViewById(R.id.spinner_Kurse);
+//        final ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, faecher);
+//        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        kursSpinner.setAdapter(spinnerArrayAdapter);
+//
+//        final TextView tvTitleExtra = (TextView)dialog.findViewById(R.id.tvDialogAddKursExtra);
+//        final RadioGroup grpe1 = (RadioGroup)dialog.findViewById(R.id.radioGrpEF1);
+//        final RadioGroup grpe2 = (RadioGroup)dialog.findViewById(R.id.radioGrpEF2);
+//        final RadioGroup grpq1 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ1);
+//        final RadioGroup grpq2 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ2);
+//        final RadioGroup grpq3 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ3);
+//        final RadioGroup grpq4 = (RadioGroup)dialog.findViewById(R.id.radioGrpQ4);
+//
+//        final CheckBox isLK = (CheckBox)dialog.findViewById(R.id.checkBoxIsLK);
+//        final CheckBox isZK = (CheckBox)dialog.findViewById(R.id.checkBoxIsZK);
+//
+//        final LinearLayout llLK = (LinearLayout)dialog.findViewById(R.id.llIsLK);
+//        final LinearLayout llZK = (LinearLayout)dialog.findViewById(R.id.llIsZK);
+//
+//
+//
+//        kursSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                System.out.println(spinnerArrayAdapter.getItem(position));
+//
+//                //Das Layout wird zurückgesetzt
+//                llZK.setVisibility(View.GONE);
+//                isLK.setEnabled(true);
+//                isLK.setChecked(false);
+//
+//                tvTitleExtra.setVisibility(View.INVISIBLE);
+//
+//                for(int i = 0; i< grpq1.getChildCount() -1; i++){
+//                    grpq1.getChildAt(i).setEnabled(true);
+//                }
+//                for(int i = 0; i< grpq2.getChildCount() -1; i++){
+//                    grpq2.getChildAt(i).setEnabled(true);
+//                }
+//                for(int i = 0; i< grpq3.getChildCount() -1; i++){
+//                    grpq3.getChildAt(i).setEnabled(true);
+//                }
+//                for(int i = 0; i< grpq4.getChildCount() -1; i++){
+//                    grpq4.getChildAt(i).setEnabled(true);
+//                }
+//                grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
+//
+//                if(spinnerArrayAdapter.getItem(position).equals("Geschichte") ||
+//                        spinnerArrayAdapter.getItem(position).equals("Sozialwissenschaften")){
+//
+//                    llZK.setVisibility(View.VISIBLE);
+//                    isZK.setChecked(false);
+//                }
+//
+//
+//                try {
+//                    if(!isLKAvailable(spinnerArrayAdapter.getItem(position))){
+//                        llLK.setVisibility(View.GONE);
+//                    }
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//
+//            }
+//        });
+//
+//        isLK.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//
+//                //GetChildCount()-1 damit der LK-RadioButton nicht ausgegraut wird.
+//                for(int i = 0; i< grpq1.getChildCount() -1; i++){
+//                    grpq1.getChildAt(i).setEnabled(!isChecked);
+//                }
+//                for(int i = 0; i< grpq2.getChildCount() -1; i++){
+//                    grpq2.getChildAt(i).setEnabled(!isChecked);
+//                }
+//                for(int i = 0; i< grpq3.getChildCount() -1; i++){
+//                    grpq3.getChildAt(i).setEnabled(!isChecked);
+//                }
+//                for(int i = 0; i< grpq4.getChildCount() -1; i++){
+//                    grpq4.getChildAt(i).setEnabled(!isChecked);
+//                }
+//
+//                if(isChecked){
+//                    grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.VISIBLE);
+//                    grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.VISIBLE);
+//                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.VISIBLE);
+//                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.VISIBLE);
+//                    tvTitleExtra.setVisibility(View.VISIBLE);
+//
+//                    ((RadioButton)grpq1.getChildAt(grpq1.getChildCount()-1)).setChecked(true);
+//                    ((RadioButton)grpq2.getChildAt(grpq2.getChildCount()-1)).setChecked(true);
+//                    ((RadioButton)grpq3.getChildAt(grpq3.getChildCount()-1)).setChecked(true);
+//                    ((RadioButton)grpq4.getChildAt(grpq4.getChildCount()-1)).setChecked(true);
+//
+//                    tvTitleExtra.setText("LK");
+//
+//                    isZK.setEnabled(false);
+//                }else {
+//                    grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                    grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                    tvTitleExtra.setVisibility(View.INVISIBLE);
+//
+//                    isZK.setEnabled(true);
+//                }
+//            }
+//        });
+//
+//        isZK.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                //GetChildCount()-1 damit der LK-RadioButton nicht ausgegraut wird.
+//                for(int i = 0; i< grpq3.getChildCount() -1; i++){
+//                    grpq3.getChildAt(i).setEnabled(!isChecked);
+//                }
+//                for(int i = 0; i< grpq4.getChildCount() -1; i++){
+//                    grpq4.getChildAt(i).setEnabled(!isChecked);
+//                }
+//
+//                if(isChecked) {
+//                    grpq3.getChildAt(grpq3.getChildCount() - 1).setVisibility(View.VISIBLE);
+//                    grpq4.getChildAt(grpq4.getChildCount() - 1).setVisibility(View.VISIBLE);
+//                    tvTitleExtra.setVisibility(View.VISIBLE);
+//
+//                    ((RadioButton)grpq3.getChildAt(grpq3.getChildCount()-1)).setChecked(true);
+//                    ((RadioButton)grpq4.getChildAt(grpq4.getChildCount()-1)).setChecked(true);
+//
+//                    tvTitleExtra.setText("ZK");
+//                    isLK.setEnabled(false);
+//                }else {
+//                    grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                    grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
+//                    tvTitleExtra.setVisibility(View.INVISIBLE);
+//                    isLK.setEnabled(true);
+//                }
+//            }
+//        });
+//
+//
+//
+//        Button finishBtn = (Button) dialog.findViewById(R.id.btn_add_kurs_finish);
+//        finishBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                int selE1Id = grpe1.getCheckedRadioButtonId();
+//                int selE2Id = grpe2.getCheckedRadioButtonId();
+//                int selQ1Id = grpq1.getCheckedRadioButtonId();
+//                int selQ2Id = grpq2.getCheckedRadioButtonId();
+//                int selQ3Id = grpq3.getCheckedRadioButtonId();
+//                int selQ4Id = grpq4.getCheckedRadioButtonId();
+//
+//                RadioButton rbE1 = (RadioButton)dialog.findViewById(selE1Id);
+//                RadioButton rbE2 = (RadioButton)dialog.findViewById(selE2Id);
+//                RadioButton rbQ1 = (RadioButton)dialog.findViewById(selQ1Id);
+//                RadioButton rbQ2 = (RadioButton)dialog.findViewById(selQ2Id);
+//                RadioButton rbQ3 = (RadioButton)dialog.findViewById(selQ3Id);
+//                RadioButton rbQ4 = (RadioButton)dialog.findViewById(selQ4Id);
+//
+//                String e1Type = "";
+//                String e2Type = "";
+//                String q1Type = "";
+//                String q2Type = "";
+//                String q3Type = "";
+//                String q4Type = "";
+//
+//                if(rbE1!=null){
+//                    e1Type = (String)rbE1.getTag();
+//                }
+//                if(rbE2!=null){
+//                    e2Type = (String)rbE2.getTag();
+//                }
+//                if(rbQ1!=null){
+//                    q1Type = (String)rbQ1.getTag();
+//                }
+//                if(rbQ2!=null){
+//                    q2Type = (String)rbQ2.getTag();
+//                }
+//                if(rbQ3!=null){
+//                    q3Type = (String)rbQ3.getTag();
+//                }if(rbQ4!=null){
+//                    q4Type = (String)rbQ4.getTag();
+//                }
+//
+//                //Wenn das Fach als ZK oder LK angegeben wurde werden hier alle anderen Werte ggf. überschrieben!
+//                //LK überschreibt ZK!
+//                if(isZK.isChecked()){
+//                    q3Type = "ZK";
+//                    q4Type = "ZK";
+//                }
+//                if(isLK.isChecked()){
+//                    q1Type = "LK";
+//                    q2Type = "LK";
+//                    q3Type = "LK";
+//                    q4Type = "LK";
+//                }
+//
+//
+//                String fach = kursSpinner.getItemAtPosition(kursSpinner.getSelectedItemPosition()).toString();
+//                addKurs(fach, e1Type, e2Type, q1Type, q2Type, q3Type, q4Type);
+//            }
+//        });
+//    }
 
     /**
      * Fügt einen Kurs in die Datenbank ein.
@@ -623,44 +623,44 @@ public class MainActivity extends AppCompatActivity
      * @param q3Type Q3Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
      * @param q4Type Q4Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
      */
-    private void addKurs(String fach, String e1Type, String e2Type,
-                         String q1Type, String q2Type,
-                         String q3Type, String q4Type){
-
-        Log.d(TAG, "Fach: " + fach + "EF.1: " + e1Type + "EF.2: " + e2Type
-                + "Q1.1: " + q1Type + "Q1.2: " + q2Type
-                + "Q2.1: " + q3Type + "Q2.2: " + q4Type);
-
-        try {
-            String fachKrz = "";
-            Table fachTable = lupoDatabase.getTable("ABP_Faecher");
-            Cursor fachCursor = CursorBuilder.createCursor(fachTable);
-            boolean fachFound = fachCursor.findFirstRow(Collections.singletonMap("Bezeichnung", fach));
-            if(fachFound){
-                fachKrz = Objects.toString(fachCursor.getCurrentRowValue(fachTable.getColumn("FachKrz")), "");
-            }
-
-            Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
-            Cursor cursor = CursorBuilder.createCursor(table);
-            boolean found = cursor.findFirstRow(Collections.singletonMap("FachKrz", fachKrz));
-            if(found){
-                Row row = cursor.getCurrentRow();
-                row.put("Kursart_E1", e1Type);
-                row.put("Kursart_E2", e2Type);
-                row.put("Kursart_Q1", q1Type);
-                row.put("Kursart_Q2", q2Type);
-                row.put("Kursart_Q3", q3Type);
-                row.put("Kursart_Q4", q4Type);
-
-                table.updateRow(row);
-                refreshUI();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
+//    private void addKurs(String fach, String e1Type, String e2Type,
+//                         String q1Type, String q2Type,
+//                         String q3Type, String q4Type){
+//
+//        Log.d(TAG, "Fach: " + fach + "EF.1: " + e1Type + "EF.2: " + e2Type
+//                + "Q1.1: " + q1Type + "Q1.2: " + q2Type
+//                + "Q2.1: " + q3Type + "Q2.2: " + q4Type);
+//
+//        try {
+//            String fachKrz = "";
+//            Table fachTable = lupoDatabase.getTable("ABP_Faecher");
+//            Cursor fachCursor = CursorBuilder.createCursor(fachTable);
+//            boolean fachFound = fachCursor.findFirstRow(Collections.singletonMap("Bezeichnung", fach));
+//            if(fachFound){
+//                fachKrz = Objects.toString(fachCursor.getCurrentRowValue(fachTable.getColumn("FachKrz")), "");
+//            }
+//
+//            Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
+//            Cursor cursor = CursorBuilder.createCursor(table);
+//            boolean found = cursor.findFirstRow(Collections.singletonMap("FachKrz", fachKrz));
+//            if(found){
+//                Row row = cursor.getCurrentRow();
+//                row.put("Kursart_E1", e1Type);
+//                row.put("Kursart_E2", e2Type);
+//                row.put("Kursart_Q1", q1Type);
+//                row.put("Kursart_Q2", q2Type);
+//                row.put("Kursart_Q3", q3Type);
+//                row.put("Kursart_Q4", q4Type);
+//
+//                table.updateRow(row);
+//                refreshUI();
+//            }
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
 
     /**
      * Öffnet die Datenbank, wenn eine über den Button ausgewählt wurde.
@@ -668,21 +668,21 @@ public class MainActivity extends AppCompatActivity
      * Setzt die Datenbank auf AutoSync --> Daten werden bei jedem Schreibvorgang gespeichert.
      * @throws IOException Wenn keine Datenbankdatei gefunden wurde wird eine IOException zurückgegeben.
      */
-    private void openLupoDatabase() throws IOException {
-        SharedPreferences sharedPreferences = getSharedPreferences(
-                getResources().getString(R.string.prefs_key),
-                Context.MODE_PRIVATE);
-        String fileName = sharedPreferences.getString("dbFileName", null);
-        if(fileName!=null){
-            File file = new File(this.getFilesDir(), fileName);
-
-            DatabaseBuilder dbb = new DatabaseBuilder();
-            dbb.setAutoSync(true);
-            lupoDatabase = dbb.open(file);
-
-            refreshUI();
-        }
-    }
+//    private void openLupoDatabase() throws IOException {
+//        SharedPreferences sharedPreferences = getSharedPreferences(
+//                getResources().getString(R.string.prefs_key),
+//                Context.MODE_PRIVATE);
+//        String fileName = sharedPreferences.getString("dbFileName", null);
+//        if(fileName!=null){
+//            File file = new File(this.getFilesDir(), fileName);
+//
+//            DatabaseBuilder dbb = new DatabaseBuilder();
+//            dbb.setAutoSync(true);
+//            lupoDatabase = dbb.open(file);
+//
+//            refreshUI();
+//        }
+//    }
 
 
     /**
