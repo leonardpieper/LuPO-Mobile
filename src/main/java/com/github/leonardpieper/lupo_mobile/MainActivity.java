@@ -10,7 +10,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -19,7 +21,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
@@ -36,6 +37,8 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.github.leonardpieper.lupo_mobile.fragments.LuPOFragment;
+import com.github.leonardpieper.lupo_mobile.fragments.SettingsFragment;
 import com.github.leonardpieper.lupo_mobile.tools.StundenRechener;
 import com.healthmarketscience.jackcess.Column;
 import com.healthmarketscience.jackcess.Cursor;
@@ -79,8 +82,15 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        LuPOFragment settingsFragment = new LuPOFragment();
+        this.getFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, settingsFragment, "Hi")
+                .addToBackStack(null)
+                .commit();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -99,14 +109,15 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+
         tableLayout = (TableLayout)findViewById(R.id.tableLayoutMain);
 
-        try {
-            openLupoDatabase();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            openLupoDatabase();
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -148,8 +159,17 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            // Handle the camera action
+            LuPOFragment settingsFragment = new LuPOFragment();
+            this.getFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentContainer, settingsFragment, "Hi")
+                    .addToBackStack(null)
+                    .commit();
         } else if (id == R.id.nav_gallery) {
+            SettingsFragment settingsFragment = new SettingsFragment();
+            this.getFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentContainer, settingsFragment, "Hi")
+                    .addToBackStack(null)
+                    .commit();
 
         } else if (id == R.id.nav_slideshow) {
 
@@ -288,17 +308,29 @@ public class MainActivity extends AppCompatActivity
         TextView tvKursart_Q3 = new TextView(this);
         TextView tvKursart_Q4 = new TextView(this);
 
-        TableRow.LayoutParams trParams = new TableRow.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
+        TableRow.LayoutParams trNameParams = new TableRow.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, .28f);
+        trNameParams.setMargins(0, 0, 0, 2);
 
-        tvFachKrz.setLayoutParams(trParams);
+        TableRow.LayoutParams trParams = new TableRow.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, .12f);
+        trParams.setMargins(0, 0, 0, 2);
+
+        tvFachKrz.setLayoutParams(trNameParams);
         tvKursart_E1.setLayoutParams(trParams);
         tvKursart_E2.setLayoutParams(trParams);
         tvKursart_Q1.setLayoutParams(trParams);
         tvKursart_Q2.setLayoutParams(trParams);
         tvKursart_Q3.setLayoutParams(trParams);
         tvKursart_Q4.setLayoutParams(trParams);
+
+        tvFachKrz.setPadding(0, 16, 0, 16);
+        tvKursart_E1.setPadding(0, 16, 0, 16);
+        tvKursart_E2.setPadding(0, 16, 0, 16);
+        tvKursart_Q1.setPadding(0, 16, 0, 16);
+        tvKursart_Q2.setPadding(0, 16, 0, 16);
+        tvKursart_Q3.setPadding(0, 16, 0, 16);
+        tvKursart_Q4.setPadding(0, 16, 0, 16);
 
         tvFachKrz.setText(fachKrz);
         tvKursart_E1.setText(kursart_E1);
@@ -664,6 +696,8 @@ public class MainActivity extends AppCompatActivity
 
         //Die UI-Table wird nach der vorgegebenen Sortierung der Lupo-Datenbank sortiert.
 //        for(Row row : CursorBuilder.createCursor(table.getIndex("Sortierung"))){
+
+        addRow("Fachkrz", "EF.1", "EF.2", "Q1.1", "Q1.2", "Q2.1", "Q2.2");
         for (Row row : table) {
             Column fachKrz = table.getColumn("FachKrz");
             Column kursartE1 = table.getColumn("Kursart_E1");
