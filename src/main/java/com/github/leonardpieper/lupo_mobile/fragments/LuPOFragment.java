@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.github.leonardpieper.lupo_mobile.MainActivity;
 import com.github.leonardpieper.lupo_mobile.R;
+import com.github.leonardpieper.lupo_mobile.tools.Fehlermeldungen;
 import com.github.leonardpieper.lupo_mobile.tools.StundenRechener;
 import com.healthmarketscience.jackcess.Column;
 import com.healthmarketscience.jackcess.Cursor;
@@ -74,6 +75,8 @@ public class LuPOFragment extends Fragment {
 
         try {
             openLupoDatabase();
+//            Fehlermeldungen fehlermeldungen = new Fehlermeldungen(lupoDatabase);
+//            fehlermeldungen.checkForFehler();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -281,12 +284,12 @@ public class LuPOFragment extends Fragment {
                 RadioButton rbQ3 = (RadioButton)dialog.findViewById(selQ3Id);
                 RadioButton rbQ4 = (RadioButton)dialog.findViewById(selQ4Id);
 
-                String e1Type = "";
-                String e2Type = "";
-                String q1Type = "";
-                String q2Type = "";
-                String q3Type = "";
-                String q4Type = "";
+                String e1Type = null;
+                String e2Type = null;
+                String q1Type = null;
+                String q2Type = null;
+                String q3Type = null;
+                String q4Type = null;
 
                 if(rbE1!=null){
                     e1Type = (String)rbE1.getTag();
@@ -523,6 +526,7 @@ public class LuPOFragment extends Fragment {
                     sValueKursartQ4);
         }
         refreshWochenStunden();
+        getFehler();
     }
 
     /**
@@ -569,6 +573,27 @@ public class LuPOFragment extends Fragment {
         }).start();
     }
 
+    private void getFehler(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Fehlermeldungen fehlermeldungen = new Fehlermeldungen(lupoDatabase);
+                    final String s = fehlermeldungen.checkForFehler();
+
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setText(s);
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
     /**
      * Prüft ob ein LK in einem Fach gewählt werden kann
      * @param fach Der zu prüfende Fachname
@@ -588,61 +613,5 @@ public class LuPOFragment extends Fragment {
         }
         return false;
     }
-
-//    private class asyncCalcWochenstunden extends AsyncTask<Void, Void, Void>{
-//        StundenRechener stundenRechener;
-//
-//        String wochenStundenE1 = null;
-//        String wochenStundenE2 = null;
-//        String wochenStundenQ1 = null;
-//        String wochenStundenQ2 = null;
-//        String wochenStundenQ3 = null;
-//        String wochenStundenQ4 = null;
-//
-//        String durchscnittE = null;
-//        String durchscnittQ = null;
-//
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//            try {
-//                stundenRechener = new StundenRechener(lupoDatabase);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        @Override
-//        protected Void doInBackground(Void... params) {
-//            try {
-//                wochenStundenE1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E1"));
-//                wochenStundenE2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E2"));
-//                wochenStundenQ1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q1"));
-//                wochenStundenQ2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q2"));
-//                wochenStundenQ3 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q3"));
-//                wochenStundenQ4 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q4"));
-//
-//                durchscnittE = String.valueOf(stundenRechener.getPhasenstunden(0));
-//                durchscnittQ = String.valueOf(stundenRechener.getPhasenstunden(1));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Void aVoid) {
-//            super.onPostExecute(aVoid);
-//            ((TextView)getActivity().findViewById(R.id.tvInfoWochenStdE1)).setText(wochenStundenE1);
-//            ((TextView)getActivity().findViewById(R.id.tvInfoWochenStdE2)).setText(wochenStundenE2);
-//            ((TextView)getActivity().findViewById(R.id.tvInfoWochenStdQ1)).setText(wochenStundenQ1);
-//            ((TextView)view.findViewById(R.id.tvInfoWochenStdQ2)).setText(wochenStundenQ2);
-//            ((TextView)view.findViewById(R.id.tvInfoWochenStdQ3)).setText(wochenStundenQ3);
-//            ((TextView)view.findViewById(R.id.tvInfoWochenStdQ4)).setText(wochenStundenQ4);
-//
-//            ((TextView)view.findViewById(R.id.tvInfoDurchStdE)).setText("E-Phase: " + durchscnittE);
-//            ((TextView)view.findViewById(R.id.tvInfoDurchStdQ)).setText("Q-Phase: " + durchscnittQ);
-//        }
-//    }
 
 }
