@@ -172,202 +172,118 @@ public class MainActivity extends AppCompatActivity
                     .addToBackStack(null)
                     .commit();
         } else if (id == R.id.nav_gallery) {
+
+
+        } else if (id == R.id.nav_share) {
             SettingsFragment settingsFragment = new SettingsFragment();
             this.getFragmentManager().beginTransaction()
                     .replace(R.id.fragmentContainer, settingsFragment, "Hi")
                     .addToBackStack(null)
                     .commit();
-
-        } else if (id == R.id.nav_share) {
-
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 42 && resultCode == Activity.RESULT_OK){
-            // The document selected by the user won't be returned in the intent.
-            // Instead, a URI to that document will be contained in the return intent
-            // provided to this method as a parameter.
-            // Pull that URI using resultData.getData().
-            Uri uri = null;
-            if (data != null) {
-                uri = data.getData();
-                lupoDatabasePath = uri;
-                Log.i(TAG, "Uri: " + uri.toString());
+//    a
+
+//    /**
+//     * Öffnet den Android-"Explorer".
+//     * Es sind nur Dateien des Typs "application" erlaubt auszuwählen.
+//     * @param view View ist der Android-Explorer
+//     */
+//    public void openFilePicker(View view) {
+//        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+//        intent.addCategory(Intent.CATEGORY_OPENABLE);
+//        intent.setType("application/*");
+//
+//        startActivityForResult(intent, 42);
+//    }
 
 
-
-                if(EasyPermissions.hasPermissions(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    try {
-                        //Diese Konvertierung ist nötig, da man von dem Storage Access Framework
-                        //nur eine Content-uri zurück bekommt.
-                        InputStream inputStream = getContentResolver().openInputStream(uri);
-                        byte[] buffer = new byte[inputStream.available()];
-                        inputStream.read(buffer);
-                        File file = new File(this.getFilesDir(), new File(uri.getPath()).getName());
-                        OutputStream outputStream = new FileOutputStream(file);
-                        outputStream.write(buffer);
-                        outputStream.flush();
-
-//                        lupoDatabase = DatabaseBuilder.open(file);
-                        DatabaseBuilder dbb = new DatabaseBuilder();
-                        dbb.setAutoSync(true);
-                        lupoDatabase = dbb.open(file);
-                        if(lupoDatabase!=null){
-                            SharedPreferences sharedPreferences = getSharedPreferences(
-                                    getResources().getString(R.string.prefs_key),
-                                    Context.MODE_PRIVATE);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("dbFileName", file.getName());
-                            editor.commit();
-                        }
-
-
-                        Database db = DatabaseBuilder.open(file);
-                        Table table = db.getTable("ABP_SchuelerFaecher");
-                        for (Row row : table) {
-//                            Log.d(TAG, "Look ma, a row: " + row.toString());
-//                            for(Column column : table.getColumns()){
-                            Column fachKrz = table.getColumn("FachKrz");
-                            Column kursartE1 = table.getColumn("Kursart_E1");
-                            Column kursartE2 = table.getColumn("Kursart_E2");
-                            Column kursartQ1 = table.getColumn("Kursart_Q1");
-                            Column kursartQ2 = table.getColumn("Kursart_Q2");
-                            Column kursartQ3 = table.getColumn("Kursart_Q3");
-                            Column kursartQ4 = table.getColumn("Kursart_Q4");
-
-                            Object valueFackKrz = row.get(fachKrz.getName());
-                            Object valueKursartE1 = row.get(kursartE1.getName());
-                            Object valueKursartE2 = row.get(kursartE2.getName());
-                            Object valueKursartQ1 = row.get(kursartQ1.getName());
-                            Object valueKursartQ2 = row.get(kursartQ2.getName());
-                            Object valueKursartQ3 = row.get(kursartQ3.getName());
-                            Object valueKursartQ4 = row.get(kursartQ4.getName());
-
-                            String sValueFackKrz = Objects.toString(valueFackKrz, "");
-                            String sValueKursartE1 = Objects.toString(valueKursartE1, "");
-                            String sValueKursartE2 = Objects.toString(valueKursartE2, "");
-                            String sValueKursartQ1 = Objects.toString(valueKursartQ1, "");
-                            String sValueKursartQ2 = Objects.toString(valueKursartQ2, "");
-                            String sValueKursartQ3 = Objects.toString(valueKursartQ3, "");
-                            String sValueKursartQ4 = Objects.toString(valueKursartQ4, "");
-
-                            addRow(sValueFackKrz, sValueKursartE1, sValueKursartE2,
-                                    sValueKursartQ1, sValueKursartQ2, sValueKursartQ3,
-                                    sValueKursartQ4);
-//                            }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }else {
-                    EasyPermissions.requestPermissions(this, "Diese App benötigt Zugriff auf deine Dateien", 41 ,Manifest.permission.READ_EXTERNAL_STORAGE);
-                }
-            }
-        }
-    }
-
-    /**
-     * Öffnet den Android-"Explorer".
-     * Es sind nur Dateien des Typs "application" erlaubt auszuwählen.
-     * @param view View ist der Android-Explorer
-     */
-    public void openFilePicker(View view) {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/*");
-
-        startActivityForResult(intent, 42);
-    }
-
-
-    /**
-     * Fügt eine Reihe in das tableLayout ein.
-     * @param fachKrz Fachkrz ist die Kurzform des Faches
-     * @param kursart_E1 Kursart_E1 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     * @param kursart_E2 Kursart_E2 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     * @param kursart_Q1 Kursart_Q1 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     * @param kursart_Q2 Kursart_Q2 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     * @param kursart_Q3 Kursart_Q3 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     * @param kursart_Q4 Kursart_Q4 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     */
-    private void addRow(String fachKrz, String kursart_E1, String kursart_E2, String kursart_Q1,
-                        String kursart_Q2, String kursart_Q3, String kursart_Q4){
-
-        TableRow tableRow = new TableRow(this);
-        TextView tvFachKrz = new TextView(this);
-        TextView tvKursart_E1 = new TextView(this);
-        TextView tvKursart_E2 = new TextView(this);
-        TextView tvKursart_Q1 = new TextView(this);
-        TextView tvKursart_Q2 = new TextView(this);
-        TextView tvKursart_Q3 = new TextView(this);
-        TextView tvKursart_Q4 = new TextView(this);
-
-        TableRow.LayoutParams trNameParams = new TableRow.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, .28f);
-        trNameParams.setMargins(0, 0, 0, 2);
-
-        TableRow.LayoutParams trParams = new TableRow.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, .12f);
-        trParams.setMargins(0, 0, 0, 2);
-
-        tvFachKrz.setLayoutParams(trNameParams);
-        tvKursart_E1.setLayoutParams(trParams);
-        tvKursart_E2.setLayoutParams(trParams);
-        tvKursart_Q1.setLayoutParams(trParams);
-        tvKursart_Q2.setLayoutParams(trParams);
-        tvKursart_Q3.setLayoutParams(trParams);
-        tvKursart_Q4.setLayoutParams(trParams);
-
-        tvFachKrz.setPadding(0, 16, 0, 16);
-        tvKursart_E1.setPadding(0, 16, 0, 16);
-        tvKursart_E2.setPadding(0, 16, 0, 16);
-        tvKursart_Q1.setPadding(0, 16, 0, 16);
-        tvKursart_Q2.setPadding(0, 16, 0, 16);
-        tvKursart_Q3.setPadding(0, 16, 0, 16);
-        tvKursart_Q4.setPadding(0, 16, 0, 16);
-
-        tvFachKrz.setText(fachKrz);
-        tvKursart_E1.setText(kursart_E1);
-        tvKursart_E2.setText(kursart_E2);
-        tvKursart_Q1.setText(kursart_Q1);
-        tvKursart_Q2.setText(kursart_Q2);
-        tvKursart_Q3.setText(kursart_Q3);
-        tvKursart_Q4.setText(kursart_Q4);
-
-        tvFachKrz.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        tvKursart_E1.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        tvKursart_E2.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        tvKursart_Q1.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        tvKursart_Q2.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        tvKursart_Q3.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        tvKursart_Q4.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-
-
-        tvFachKrz.setBackgroundResource(R.drawable.cell_shape);
-        tvKursart_E1.setBackgroundResource(R.drawable.cell_shape);
-        tvKursart_E2.setBackgroundResource(R.drawable.cell_shape);
-        tvKursart_Q1.setBackgroundResource(R.drawable.cell_shape);
-        tvKursart_Q2.setBackgroundResource(R.drawable.cell_shape);
-        tvKursart_Q3.setBackgroundResource(R.drawable.cell_shape);
-        tvKursart_Q4.setBackgroundResource(R.drawable.cell_shape);
-
-        tableRow.addView(tvFachKrz);
-        tableRow.addView(tvKursart_E1);
-        tableRow.addView(tvKursart_E2);
-        tableRow.addView(tvKursart_Q1);
-        tableRow.addView(tvKursart_Q2);
-        tableRow.addView(tvKursart_Q3);
-        tableRow.addView(tvKursart_Q4);
-
-        tableLayout.addView(tableRow);
-
-    }
+//    /**
+//     * Fügt eine Reihe in das tableLayout ein.
+//     * @param fachKrz Fachkrz ist die Kurzform des Faches
+//     * @param kursart_E1 Kursart_E1 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+//     * @param kursart_E2 Kursart_E2 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+//     * @param kursart_Q1 Kursart_Q1 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+//     * @param kursart_Q2 Kursart_Q2 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+//     * @param kursart_Q3 Kursart_Q3 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+//     * @param kursart_Q4 Kursart_Q4 beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+//     */
+//    private void addRow(String fachKrz, String kursart_E1, String kursart_E2, String kursart_Q1,
+//                        String kursart_Q2, String kursart_Q3, String kursart_Q4){
+//
+//        TableRow tableRow = new TableRow(this);
+//        TextView tvFachKrz = new TextView(this);
+//        TextView tvKursart_E1 = new TextView(this);
+//        TextView tvKursart_E2 = new TextView(this);
+//        TextView tvKursart_Q1 = new TextView(this);
+//        TextView tvKursart_Q2 = new TextView(this);
+//        TextView tvKursart_Q3 = new TextView(this);
+//        TextView tvKursart_Q4 = new TextView(this);
+//
+//        TableRow.LayoutParams trNameParams = new TableRow.LayoutParams(
+//                0, ViewGroup.LayoutParams.WRAP_CONTENT, .28f);
+//        trNameParams.setMargins(0, 0, 0, 2);
+//
+//        TableRow.LayoutParams trParams = new TableRow.LayoutParams(
+//                0, ViewGroup.LayoutParams.WRAP_CONTENT, .12f);
+//        trParams.setMargins(0, 0, 0, 2);
+//
+//        tvFachKrz.setLayoutParams(trNameParams);
+//        tvKursart_E1.setLayoutParams(trParams);
+//        tvKursart_E2.setLayoutParams(trParams);
+//        tvKursart_Q1.setLayoutParams(trParams);
+//        tvKursart_Q2.setLayoutParams(trParams);
+//        tvKursart_Q3.setLayoutParams(trParams);
+//        tvKursart_Q4.setLayoutParams(trParams);
+//
+//        tvFachKrz.setPadding(0, 16, 0, 16);
+//        tvKursart_E1.setPadding(0, 16, 0, 16);
+//        tvKursart_E2.setPadding(0, 16, 0, 16);
+//        tvKursart_Q1.setPadding(0, 16, 0, 16);
+//        tvKursart_Q2.setPadding(0, 16, 0, 16);
+//        tvKursart_Q3.setPadding(0, 16, 0, 16);
+//        tvKursart_Q4.setPadding(0, 16, 0, 16);
+//
+//        tvFachKrz.setText(fachKrz);
+//        tvKursart_E1.setText(kursart_E1);
+//        tvKursart_E2.setText(kursart_E2);
+//        tvKursart_Q1.setText(kursart_Q1);
+//        tvKursart_Q2.setText(kursart_Q2);
+//        tvKursart_Q3.setText(kursart_Q3);
+//        tvKursart_Q4.setText(kursart_Q4);
+//
+//        tvFachKrz.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+//        tvKursart_E1.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+//        tvKursart_E2.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+//        tvKursart_Q1.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+//        tvKursart_Q2.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+//        tvKursart_Q3.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+//        tvKursart_Q4.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+//
+//
+//        tvFachKrz.setBackgroundResource(R.drawable.cell_shape);
+//        tvKursart_E1.setBackgroundResource(R.drawable.cell_shape);
+//        tvKursart_E2.setBackgroundResource(R.drawable.cell_shape);
+//        tvKursart_Q1.setBackgroundResource(R.drawable.cell_shape);
+//        tvKursart_Q2.setBackgroundResource(R.drawable.cell_shape);
+//        tvKursart_Q3.setBackgroundResource(R.drawable.cell_shape);
+//        tvKursart_Q4.setBackgroundResource(R.drawable.cell_shape);
+//
+//        tableRow.addView(tvFachKrz);
+//        tableRow.addView(tvKursart_E1);
+//        tableRow.addView(tvKursart_E2);
+//        tableRow.addView(tvKursart_Q1);
+//        tableRow.addView(tvKursart_Q2);
+//        tableRow.addView(tvKursart_Q3);
+//        tableRow.addView(tvKursart_Q4);
+//
+//        tableLayout.addView(tableRow);
+//
+//    }
 
     /**
      * Öffnet einen Dialog, indem man ein neues Fach in seine Laufbahn eintragen kann.
@@ -685,111 +601,111 @@ public class MainActivity extends AppCompatActivity
 //    }
 
 
-    /**
-     * Synchronisiert die lupoDatabase mit dem TableLayout
-     * @throws IOException Wenn die Tabelle "ABP_SchuelerFaecher" nicht
-     * in der Datenbank "lupoDatabase" gefunden wurde wird eine IOExpection zurückgegeben.
-     */
-    private void refreshUI() throws IOException {
-        tableLayout.removeAllViews();
-        Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
+//    /**
+//     * Synchronisiert die lupoDatabase mit dem TableLayout
+//     * @throws IOException Wenn die Tabelle "ABP_SchuelerFaecher" nicht
+//     * in der Datenbank "lupoDatabase" gefunden wurde wird eine IOExpection zurückgegeben.
+//     */
+//    private void refreshUI() throws IOException {
+//        tableLayout.removeAllViews();
+//        Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
+//
+//        //Die UI-Table wird nach der vorgegebenen Sortierung der Lupo-Datenbank sortiert.
+////        for(Row row : CursorBuilder.createCursor(table.getIndex("Sortierung"))){
+//
+//        addRow("Fachkrz", "EF.1", "EF.2", "Q1.1", "Q1.2", "Q2.1", "Q2.2");
+//        for (Row row : table) {
+//            Column fachKrz = table.getColumn("FachKrz");
+//            Column kursartE1 = table.getColumn("Kursart_E1");
+//            Column kursartE2 = table.getColumn("Kursart_E2");
+//            Column kursartQ1 = table.getColumn("Kursart_Q1");
+//            Column kursartQ2 = table.getColumn("Kursart_Q2");
+//            Column kursartQ3 = table.getColumn("Kursart_Q3");
+//            Column kursartQ4 = table.getColumn("Kursart_Q4");
+//
+//            Object valueFackKrz = row.get(fachKrz.getName());
+//            Object valueKursartE1 = row.get(kursartE1.getName());
+//            Object valueKursartE2 = row.get(kursartE2.getName());
+//            Object valueKursartQ1 = row.get(kursartQ1.getName());
+//            Object valueKursartQ2 = row.get(kursartQ2.getName());
+//            Object valueKursartQ3 = row.get(kursartQ3.getName());
+//            Object valueKursartQ4 = row.get(kursartQ4.getName());
+//
+//            String sValueFackKrz = Objects.toString(valueFackKrz, "");
+//            String sValueKursartE1 = Objects.toString(valueKursartE1, "");
+//            String sValueKursartE2 = Objects.toString(valueKursartE2, "");
+//            String sValueKursartQ1 = Objects.toString(valueKursartQ1, "");
+//            String sValueKursartQ2 = Objects.toString(valueKursartQ2, "");
+//            String sValueKursartQ3 = Objects.toString(valueKursartQ3, "");
+//            String sValueKursartQ4 = Objects.toString(valueKursartQ4, "");
+//
+//            addRow(sValueFackKrz, sValueKursartE1, sValueKursartE2,
+//                    sValueKursartQ1, sValueKursartQ2, sValueKursartQ3,
+//                    sValueKursartQ4);
+//        }
+//        refreshWochenStunden();
+//    }
 
-        //Die UI-Table wird nach der vorgegebenen Sortierung der Lupo-Datenbank sortiert.
-//        for(Row row : CursorBuilder.createCursor(table.getIndex("Sortierung"))){
+//    /**
+//     * Berechnet die Wochenstunden und zeigt sie unten in der BottomBar an.
+//     * Das ganze erfolgt asynchron, damit keine lange Ladezeit beim
+//     * starten der App und updaten der UI erfolgt.
+//     */
+//    private void refreshWochenStunden(){
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    StundenRechener stundenRechener = new StundenRechener(lupoDatabase);
+//                    final String wochenStundenE1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E1"));
+//                    final String wochenStundenE2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E2"));
+//                    final String wochenStundenQ1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q1"));
+//                    final String wochenStundenQ2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q2"));
+//                    final String wochenStundenQ3 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q3"));
+//                    final String wochenStundenQ4 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q4"));
+//
+//                    final String durchscnittE = String.valueOf(stundenRechener.getPhasenstunden(0));
+//                    final String durchscnittQ = String.valueOf(stundenRechener.getPhasenstunden(1));
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            ((TextView)findViewById(R.id.tvInfoWochenStdE1)).setText(wochenStundenE1);
+//                            ((TextView)findViewById(R.id.tvInfoWochenStdE2)).setText(wochenStundenE2);
+//                            ((TextView)findViewById(R.id.tvInfoWochenStdQ1)).setText(wochenStundenQ1);
+//                            ((TextView)findViewById(R.id.tvInfoWochenStdQ2)).setText(wochenStundenQ2);
+//                            ((TextView)findViewById(R.id.tvInfoWochenStdQ3)).setText(wochenStundenQ3);
+//                            ((TextView)findViewById(R.id.tvInfoWochenStdQ4)).setText(wochenStundenQ4);
+//
+//                            ((TextView)findViewById(R.id.tvInfoDurchStdE)).setText("E-Phase: " + durchscnittE);
+//                            ((TextView)findViewById(R.id.tvInfoDurchStdQ)).setText("Q-Phase: " + durchscnittQ);
+//
+//                        }
+//                    });
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
+//    }
 
-        addRow("Fachkrz", "EF.1", "EF.2", "Q1.1", "Q1.2", "Q2.1", "Q2.2");
-        for (Row row : table) {
-            Column fachKrz = table.getColumn("FachKrz");
-            Column kursartE1 = table.getColumn("Kursart_E1");
-            Column kursartE2 = table.getColumn("Kursart_E2");
-            Column kursartQ1 = table.getColumn("Kursart_Q1");
-            Column kursartQ2 = table.getColumn("Kursart_Q2");
-            Column kursartQ3 = table.getColumn("Kursart_Q3");
-            Column kursartQ4 = table.getColumn("Kursart_Q4");
-
-            Object valueFackKrz = row.get(fachKrz.getName());
-            Object valueKursartE1 = row.get(kursartE1.getName());
-            Object valueKursartE2 = row.get(kursartE2.getName());
-            Object valueKursartQ1 = row.get(kursartQ1.getName());
-            Object valueKursartQ2 = row.get(kursartQ2.getName());
-            Object valueKursartQ3 = row.get(kursartQ3.getName());
-            Object valueKursartQ4 = row.get(kursartQ4.getName());
-
-            String sValueFackKrz = Objects.toString(valueFackKrz, "");
-            String sValueKursartE1 = Objects.toString(valueKursartE1, "");
-            String sValueKursartE2 = Objects.toString(valueKursartE2, "");
-            String sValueKursartQ1 = Objects.toString(valueKursartQ1, "");
-            String sValueKursartQ2 = Objects.toString(valueKursartQ2, "");
-            String sValueKursartQ3 = Objects.toString(valueKursartQ3, "");
-            String sValueKursartQ4 = Objects.toString(valueKursartQ4, "");
-
-            addRow(sValueFackKrz, sValueKursartE1, sValueKursartE2,
-                    sValueKursartQ1, sValueKursartQ2, sValueKursartQ3,
-                    sValueKursartQ4);
-        }
-        refreshWochenStunden();
-    }
-
-    /**
-     * Berechnet die Wochenstunden und zeigt sie unten in der BottomBar an.
-     * Das ganze erfolgt asynchron, damit keine lange Ladezeit beim
-     * starten der App und updaten der UI erfolgt.
-     */
-    private void refreshWochenStunden(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    StundenRechener stundenRechener = new StundenRechener(lupoDatabase);
-                    final String wochenStundenE1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E1"));
-                    final String wochenStundenE2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E2"));
-                    final String wochenStundenQ1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q1"));
-                    final String wochenStundenQ2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q2"));
-                    final String wochenStundenQ3 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q3"));
-                    final String wochenStundenQ4 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q4"));
-
-                    final String durchscnittE = String.valueOf(stundenRechener.getPhasenstunden(0));
-                    final String durchscnittQ = String.valueOf(stundenRechener.getPhasenstunden(1));
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ((TextView)findViewById(R.id.tvInfoWochenStdE1)).setText(wochenStundenE1);
-                            ((TextView)findViewById(R.id.tvInfoWochenStdE2)).setText(wochenStundenE2);
-                            ((TextView)findViewById(R.id.tvInfoWochenStdQ1)).setText(wochenStundenQ1);
-                            ((TextView)findViewById(R.id.tvInfoWochenStdQ2)).setText(wochenStundenQ2);
-                            ((TextView)findViewById(R.id.tvInfoWochenStdQ3)).setText(wochenStundenQ3);
-                            ((TextView)findViewById(R.id.tvInfoWochenStdQ4)).setText(wochenStundenQ4);
-
-                            ((TextView)findViewById(R.id.tvInfoDurchStdE)).setText("E-Phase: " + durchscnittE);
-                            ((TextView)findViewById(R.id.tvInfoDurchStdQ)).setText("Q-Phase: " + durchscnittQ);
-
-                        }
-                    });
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    /**
-     * Prüft ob ein LK in einem Fach gewählt werden kann
-     * @param fach Der zu prüfende Fachname
-     * @return Ob das Fach als LK gewählt werden kann
-     * @throws IOException Wenn die Tabelle "ABP_Faecher" nicht
-     * in der Datenbank "lupoDatabase" gefunden wurde wird eine IOExpection zurückgegeben.
-     */
-    private boolean isLKAvailable(String fach) throws IOException {
-        Table table = lupoDatabase.getTable("ABP_Faecher");
-        Cursor cursor = CursorBuilder.createCursor(table);
-        boolean found = cursor.findFirstRow(Collections.singletonMap("Bezeichnung", fach));
-        if(found){
-            Row row = cursor.getCurrentRow();
-            if(row.get("LK_Moegl").equals("J")){
-                return true;
-            }
-        }
-        return false;
-    }
+//    /**
+//     * Prüft ob ein LK in einem Fach gewählt werden kann
+//     * @param fach Der zu prüfende Fachname
+//     * @return Ob das Fach als LK gewählt werden kann
+//     * @throws IOException Wenn die Tabelle "ABP_Faecher" nicht
+//     * in der Datenbank "lupoDatabase" gefunden wurde wird eine IOExpection zurückgegeben.
+//     */
+//    private boolean isLKAvailable(String fach) throws IOException {
+//        Table table = lupoDatabase.getTable("ABP_Faecher");
+//        Cursor cursor = CursorBuilder.createCursor(table);
+//        boolean found = cursor.findFirstRow(Collections.singletonMap("Bezeichnung", fach));
+//        if(found){
+//            Row row = cursor.getCurrentRow();
+//            if(row.get("LK_Moegl").equals("J")){
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 }

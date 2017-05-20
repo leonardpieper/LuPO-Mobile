@@ -19,8 +19,11 @@ public class Fehlermeldungen {
     }
 
     public String checkForFehler() throws IOException {
-        if(!deutschVonEF1BisQ4()){
-            return "Deutsch muss von der EF bis zur Q2 durchgängig belegt werden.";
+        if(!fachVonEF1BisQ4("D")){
+            return "Deutsch muss von der EF.1 bis zur Q2.2 durchgängig belegt werden.";
+        }
+        else if(!fachVonEF1BisQ4("SP")){
+            return "Sport muss von der EF.1 bis zur Q2.2 durchgängig belegt werden.";
         }
         else if(!kunstelerischesFach()){
             return "Kunst oder Musik muss von der EF bis zur Q1.2 durchgängig belegt werden. In der Q1 kann Literatur, Instrumental- oder Vokalpraktikum das künstlerische Fach ersetzen.";
@@ -29,13 +32,13 @@ public class Fehlermeldungen {
     }
 
     /**
-     * Überprüft, ob Deutsch von EF.1 bis Q2.2 durchgängig belegt ist
-     * @return Liefert true, wenn Deuscth durchgängig belegt ist.
+     * Überprüft, ob ein Fach von EF.1 bis Q2.2 durchgängig belegt ist
+     * @return Liefert true, wenn ein Fach durchgängig belegt ist.
      * @throws IOException
      */
-    private boolean deutschVonEF1BisQ4() throws IOException {
+    private boolean fachVonEF1BisQ4(String fachAbk) throws IOException {
         Cursor cursor = CursorBuilder.createCursor(tableSchuelerFaecher);
-        boolean found = cursor.findFirstRow(Collections.singletonMap("FachKrz", "D"));
+        boolean found = cursor.findFirstRow(Collections.singletonMap("FachKrz", fachAbk));
         if(found){
             Row row = cursor.getCurrentRow();
             if(row.getString("Kursart_E1")!=null
@@ -50,6 +53,18 @@ public class Fehlermeldungen {
         return false;
     }
 
+    /**
+     * Überprüft, ob ein künstlerisches Fach von EF.1 bis Q1.2 belegt ist.
+     * Künstlerische Fächer sind:
+     *  - Musik
+     *  - Kunst
+     *  In der Q1 außerdem:
+     *  - Literatur
+     *  - Instrumentalpraktikum
+     *  - Vokalpraktikum
+     * @return Liefert true, wenn ein künstlerisches Fach belegt ist.
+     * @throws IOException
+     */
     private boolean kunstelerischesFach() throws IOException {
         String kursart = null;
         for(int i = 0; i<4; i++){

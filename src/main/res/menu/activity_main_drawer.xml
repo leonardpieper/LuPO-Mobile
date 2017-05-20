@@ -4,7 +4,7 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_menu_camera"
+            android:icon="@drawable/ic_lupoman"
             android:title="LuPO" />
         <item
             android:id="@+id/nav_gallery"
@@ -24,7 +24,7 @@
         <menu>
             <item
                 android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
+                android:icon="@drawable/ic_settings_black_24dp"
                 android:title="Einstellungen" />
             <!--<item-->
                 <!--android:id="@+id/nav_send"-->
