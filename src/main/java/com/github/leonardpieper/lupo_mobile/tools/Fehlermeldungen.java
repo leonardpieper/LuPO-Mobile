@@ -25,8 +25,35 @@ public class Fehlermeldungen {
         else if(!fachVonEF1BisQ4("SP")){
             return "Sport muss von der EF.1 bis zur Q2.2 durchgängig belegt werden.";
         }
+        else if(!fachVonEF1BisQ4("M")){
+            return "Mathematik muss von der EF.1 bis zur Q2.2 durchgängig belegt werden.";
+        }
+        else if(!fachVonEF1BisQ4("GE") &&
+                !fachVonEF1BisQ4("SW") &&
+                !fachVonEF1BisQ4("RK") &&
+                !fachVonEF1BisQ4("PS") &&
+                !fachVonEF1BisQ4("Pa") &&
+                !fachVonEF1BisQ4("SL") &&
+                !fachVonEF1BisQ4("EK")){
+            return "Mindestens eine Gesellschaftswissenschaft muss von der Ef.1 bis zur Q2.2 durchgängig belegt werden.";
+        }
+        else if(!geschichteSowiePflicht("GE")){
+            return "Geschichte muss von Ef.1 bis zur Q1.2 belegt werden, alternativ kann ein Zusatzkurs von Q2.1 bis Q2.2 belegt werden";
+        }
+        else if(!geschichteSowiePflicht("SW")){
+            return "Sozialwissenschaften muss von Ef.1 bis zur Q1.2 belegt werden, alternativ kann ein Zusatzkurs von Q2.1 bis Q2.2 belegt werden";
+        }
+        else if(!reliPhiloPflicht()){
+            return "Religion muss von Ef.1 bis zur Q1.2 belegt werden, alternativ kann Philosophie gewählt werden.";
+        }
+        else if(!klassischeNaturwissenschaft()){
+            return "Mindestens eine klassische Naturwissenschaft (Physik, Biologie, Chemie) muss durchgehend von Q1.1 bis Q2.2 belegt werden.";
+        }
         else if(!kunstelerischesFach()){
             return "Kunst oder Musik muss von der EF bis zur Q1.2 durchgängig belegt werden. In der Q1 kann Literatur, Instrumental- oder Vokalpraktikum das künstlerische Fach ersetzen.";
+        }
+        else if(!zweiLKs()){
+            return "Es müssen zwei Fächer als Leistungskurse gewählt werden";
         }
         return null;
     }
@@ -82,6 +109,87 @@ public class Fehlermeldungen {
             else {return false;}
         }
         return true;
+    }
+
+    /**
+     * Prüft, ob Geschichte oder Sowie von EF.1-Q1.2 belegt sind, oder ein Zusatzkurs gewählt wurde
+     * @param fachAbk Geschichte oder Sowie ("GE", "SW")
+     * @return Liefert true, wenn Geschichte oder Sowie richtig gewählt wurden.
+     * @throws IOException
+     */
+    private boolean geschichteSowiePflicht(String fachAbk) throws IOException {
+        String kursart = null;
+        boolean inE1Q2belegt = true;
+        for(int i = 0; i<4; i++){
+            switch (i){
+                case 0: kursart = "E1"; break;
+                case 1: kursart = "E2"; break;
+                case 2: kursart = "Q1"; break;
+                case 3: kursart = "Q2"; break;
+            }
+            if(fachInJahrgangBelegt(fachAbk, kursart)){continue;}
+            else {
+                inE1Q2belegt=false;
+                break;
+            }
+        }
+        if(!inE1Q2belegt){
+            if(fachInJahrgangBelegt(fachAbk, "Q3") && fachInJahrgangBelegt(fachAbk, "Q4")){
+                return true;
+            }else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean reliPhiloPflicht() throws IOException {
+        String kursart = null;
+        for(int i = 0; i<4; i++){
+            switch (i){
+                case 0: kursart = "E1"; break;
+                case 1: kursart = "E2"; break;
+                case 2: kursart = "Q1"; break;
+                case 3: kursart = "Q2"; break;
+            }
+            if(fachInJahrgangBelegt("ER", kursart)){continue;}
+            else if(fachInJahrgangBelegt("HR", kursart)){continue;}
+            else if(fachInJahrgangBelegt("YR", kursart)){continue;}
+            else if(fachInJahrgangBelegt("OR", kursart)){continue;}
+            else if(fachInJahrgangBelegt("KR", kursart)){continue;}
+            else if(fachInJahrgangBelegt("PL", kursart)){continue;}
+            else {return false;}
+        }
+        return true;
+    }
+    private boolean klassischeNaturwissenschaft() throws IOException {
+        String kursart = null;
+        for(int i = 0; i<6; i++){
+            switch (i){
+                case 0: kursart = "E1"; break;
+                case 1: kursart = "E2"; break;
+                case 2: kursart = "Q1"; break;
+                case 3: kursart = "Q2"; break;
+                case 4: kursart = "Q3"; break;
+                case 5: kursart = "Q4"; break;
+            }
+            if(fachInJahrgangBelegt("PH", kursart)){continue;}
+            else if(fachInJahrgangBelegt("BI", kursart)){continue;}
+            else if(fachInJahrgangBelegt("CH", kursart)){continue;}
+            else {return false;}
+        }
+        return true;
+    }
+
+    private boolean zweiLKs() throws IOException {
+        Cursor cursor = CursorBuilder.createCursor(tableSchuelerFaecher);
+        boolean found = cursor.findFirstRow(Collections.singletonMap("Kursart_Q1", "LK"));
+        if(found){
+            if(cursor.findNextRow(Collections.singletonMap("Kursart_Q1", "LK"))){
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean fachInJahrgangBelegt(String fachAbk, String jahrgang) throws IOException {

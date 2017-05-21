@@ -6,7 +6,8 @@
         android:icon="@drawable/ic_print_white_24dp"
         app:showAsAction="always"/>
 
-    <item android:id="@+id/action_about"
-        android:title="hi"
+    <item android:id="@+id/action_showChecked"
+        android:title="Nur belegte Fächer anzeigen"
+        android:checkable="true"
         app:showAsAction="never"/>
 </menu>

@@ -11,6 +11,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -73,6 +74,8 @@ public class LuPOFragment extends Fragment {
             }
         });
 
+        setHasOptionsMenu(true);
+
         try {
             openLupoDatabase();
 //            Fehlermeldungen fehlermeldungen = new Fehlermeldungen(lupoDatabase);
@@ -83,6 +86,24 @@ public class LuPOFragment extends Fragment {
         }
 
         return view;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_showChecked) {
+            item.setChecked(!item.isChecked());
+            try {
+                refreshUI(item.isChecked());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+
+
     }
 
     /**
@@ -369,7 +390,7 @@ public class LuPOFragment extends Fragment {
                 row.put("Kursart_Q4", q4Type);
 
                 table.updateRow(row);
-                refreshUI();
+                refreshUI(false);
             }
 
         } catch (IOException e) {
@@ -396,7 +417,7 @@ public class LuPOFragment extends Fragment {
             dbb.setAutoSync(true);
             lupoDatabase = dbb.open(file);
 
-            refreshUI();
+            refreshUI(false);
         }
     }
 
@@ -488,7 +509,7 @@ public class LuPOFragment extends Fragment {
      * @throws IOException Wenn die Tabelle "ABP_SchuelerFaecher" nicht
      * in der Datenbank "lupoDatabase" gefunden wurde wird eine IOExpection zurückgegeben.
      */
-    private void refreshUI() throws IOException {
+    private void refreshUI(boolean onlyChecked) throws IOException {
         tableLayout.removeAllViews();
         Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
 
@@ -521,9 +542,22 @@ public class LuPOFragment extends Fragment {
             String sValueKursartQ3 = Objects.toString(valueKursartQ3, "");
             String sValueKursartQ4 = Objects.toString(valueKursartQ4, "");
 
-            addRow(sValueFackKrz, sValueKursartE1, sValueKursartE2,
-                    sValueKursartQ1, sValueKursartQ2, sValueKursartQ3,
-                    sValueKursartQ4);
+            if(onlyChecked){
+                if(!sValueKursartE1.isEmpty()
+                        || !sValueKursartE2.isEmpty()
+                        || !sValueKursartQ1.isEmpty()
+                        || !sValueKursartQ2.isEmpty()
+                        || !sValueKursartQ3.isEmpty()
+                        || !sValueKursartQ4.isEmpty()){
+                    addRow(sValueFackKrz, sValueKursartE1, sValueKursartE2,
+                            sValueKursartQ1, sValueKursartQ2, sValueKursartQ3,
+                            sValueKursartQ4);
+                }
+            }else {
+                addRow(sValueFackKrz, sValueKursartE1, sValueKursartE2,
+                        sValueKursartQ1, sValueKursartQ2, sValueKursartQ3,
+                        sValueKursartQ4);
+            }
         }
         refreshWochenStunden();
         getFehler();
@@ -584,7 +618,12 @@ public class LuPOFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setText(s);
+                            if(s!=null) {
+                                ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setVisibility(View.VISIBLE);
+                                ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setText(s);
+                            }else {
+                            ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setVisibility(View.GONE);
+                            }
                         }
                     });
                 } catch (IOException e) {
