@@ -5,11 +5,13 @@
         <item
             android:id="@+id/nav_camera"
             android:icon="@drawable/ic_lupoman"
+            android:checked="true"
             android:title="LuPO" />
         <item
             android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Abiturrechner" />
+            android:icon="@drawable/ic_abidurchschnitt"
+            android:title="Abiturrechner"
+            android:enabled="false"/>
         <!--<item-->
             <!--android:id="@+id/nav_slideshow"-->
             <!--android:icon="@drawable/ic_menu_slideshow"-->
@@ -20,8 +22,8 @@
             <!--android:title="Tools" />-->
     </group>
 
-    <item android:title="Einstellungen">
-        <menu>
+    <group android:checkableBehavior="single"
+        android:id="@+id/menu_einstellungen">
             <item
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_settings_black_24dp"
@@ -30,7 +32,6 @@
                 <!--android:id="@+id/nav_send"-->
                 <!--android:icon="@drawable/ic_menu_send"-->
                 <!--android:title="Send" />-->
-        </menu>
-    </item>
+    </group>
 
 </menu>
