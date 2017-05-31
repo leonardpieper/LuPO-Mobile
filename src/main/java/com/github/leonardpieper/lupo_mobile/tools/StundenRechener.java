@@ -1,5 +1,8 @@
 package com.github.leonardpieper.lupo_mobile.tools;
 
+import android.app.Activity;
+import android.graphics.Color;
+
 import com.healthmarketscience.jackcess.Cursor;
 import com.healthmarketscience.jackcess.CursorBuilder;
 import com.healthmarketscience.jackcess.Database;
@@ -18,7 +21,10 @@ public class StundenRechener {
     private Table tableSchuelerFaecher;
     private Table tableFaecher;
 
-    public StundenRechener(Database database) throws IOException {
+    private Activity mActivity;
+
+    public StundenRechener(Activity activity, Database database) throws IOException {
+        mActivity = activity;
         tableSchuelerFaecher = database.getTable("ABP_SchuelerFaecher");
         tableFaecher = database.getTable("ABP_Faecher");
     }
@@ -110,5 +116,23 @@ public class StundenRechener {
             }
         }
         return false;
+    }
+
+    public int wochenstundenanzahl(int anzahl, boolean phase, boolean qPhase){
+        int minWochenstunden;
+        if(phase){
+            minWochenstunden = 34;
+        }else {
+            if(qPhase) {
+                minWochenstunden = 31;
+            }else {
+                minWochenstunden = 32;
+            }
+        }
+        if(anzahl<minWochenstunden){
+            return mActivity.getResources().getColor(android.R.color.holo_red_dark);
+        }else {
+            return mActivity.getResources().getColor(android.R.color.tertiary_text_light);
+        }
     }
 }

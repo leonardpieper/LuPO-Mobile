@@ -58,6 +58,8 @@ public class LuPOFragment extends Fragment {
     private View view;
     private TableLayout tableLayout;
 
+    private boolean onlySelected = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -95,6 +97,7 @@ public class LuPOFragment extends Fragment {
             item.setChecked(!item.isChecked());
             try {
                 refreshUI(item.isChecked());
+                onlySelected = item.isChecked();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -390,7 +393,7 @@ public class LuPOFragment extends Fragment {
                 row.put("Kursart_Q4", q4Type);
 
                 table.updateRow(row);
-                refreshUI(false);
+                refreshUI(onlySelected);
             }
 
         } catch (IOException e) {
@@ -417,7 +420,7 @@ public class LuPOFragment extends Fragment {
             dbb.setAutoSync(true);
             lupoDatabase = dbb.open(file);
 
-            refreshUI(false);
+            refreshUI(onlySelected);
         }
     }
 
@@ -574,28 +577,48 @@ public class LuPOFragment extends Fragment {
             @Override
             public void run() {
                 try {
-                    StundenRechener stundenRechener = new StundenRechener(lupoDatabase);
-                    final String wochenStundenE1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E1"));
-                    final String wochenStundenE2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_E2"));
-                    final String wochenStundenQ1 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q1"));
-                    final String wochenStundenQ2 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q2"));
-                    final String wochenStundenQ3 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q3"));
-                    final String wochenStundenQ4 = String.valueOf(stundenRechener.getWochenstunden("Kursart_Q4"));
+                    final StundenRechener stundenRechener = new StundenRechener(getActivity(), lupoDatabase);
+                    final int wochenStundenE1 = stundenRechener.getWochenstunden("Kursart_E1");
+                    final int wochenStundenE2 = stundenRechener.getWochenstunden("Kursart_E2");
+                    final int wochenStundenQ1 = stundenRechener.getWochenstunden("Kursart_Q1");
+                    final int wochenStundenQ2 = stundenRechener.getWochenstunden("Kursart_Q2");
+                    final int wochenStundenQ3 = stundenRechener.getWochenstunden("Kursart_Q3");
+                    final int wochenStundenQ4 = stundenRechener.getWochenstunden("Kursart_Q4");
 
-                    final String durchscnittE = String.valueOf(stundenRechener.getPhasenstunden(0));
-                    final String durchscnittQ = String.valueOf(stundenRechener.getPhasenstunden(1));
+                    final int durchscnittE = stundenRechener.getPhasenstunden(0);
+                    final int durchscnittQ = stundenRechener.getPhasenstunden(1);
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            ((TextView) getActivity().findViewById(R.id.tvInfoWochenStdE1)).setText(wochenStundenE1);
-                            ((TextView) getActivity().findViewById(R.id.tvInfoWochenStdE2)).setText(wochenStundenE2);
-                            ((TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ1)).setText(wochenStundenQ1);
-                            ((TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ2)).setText(wochenStundenQ2);
-                            ((TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ3)).setText(wochenStundenQ3);
-                            ((TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ4)).setText(wochenStundenQ4);
+                            TextView tvWE1 =  (TextView) getActivity().findViewById(R.id.tvInfoWochenStdE1);
+                            TextView tvWE2 =  (TextView) getActivity().findViewById(R.id.tvInfoWochenStdE2);
+                            TextView tvWQ1 = (TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ1);
+                            TextView tvWQ2 = (TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ2);
+                            TextView tvWQ3 = (TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ3);
+                            TextView tvWQ4 = (TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ4);
 
-                            ((TextView) getActivity().findViewById(R.id.tvInfoDurchStdE)).setText("E-Phase: " + durchscnittE);
-                            ((TextView) getActivity().findViewById(R.id.tvInfoDurchStdQ)).setText("Q-Phase: " + durchscnittQ);
+                            TextView tvDE = (TextView) getActivity().findViewById(R.id.tvInfoDurchStdE);
+                            TextView tvDQ = (TextView) getActivity().findViewById(R.id.tvInfoDurchStdQ);
+
+                            tvWE1.setText(String.valueOf(wochenStundenE1));
+                            tvWE2.setText(String.valueOf(wochenStundenE2));
+                            tvWQ1.setText(String.valueOf(wochenStundenQ1));
+                            tvWQ2.setText(String.valueOf(wochenStundenQ2));
+                            tvWQ3.setText(String.valueOf(wochenStundenQ3));
+                            tvWQ4.setText(String.valueOf(wochenStundenQ4));
+
+                            tvDE.setText("E-Phase: " + String.valueOf(durchscnittE));
+                            tvDQ.setText("Q-Phase: " + String.valueOf(durchscnittQ));
+
+                            tvWE1.setTextColor(stundenRechener.wochenstundenanzahl(wochenStundenE1, false, false));
+                            tvWE2.setTextColor(stundenRechener.wochenstundenanzahl(wochenStundenE2, false, false));
+                            tvWQ1.setTextColor(stundenRechener.wochenstundenanzahl(wochenStundenQ1, false, true));
+                            tvWQ2.setTextColor(stundenRechener.wochenstundenanzahl(wochenStundenQ2, false, true));
+                            tvWQ3.setTextColor(stundenRechener.wochenstundenanzahl(wochenStundenQ3, false, true));
+                            tvWQ4.setTextColor(stundenRechener.wochenstundenanzahl(wochenStundenQ4, false, true));
+
+                            tvDE.setTextColor(stundenRechener.wochenstundenanzahl(durchscnittE, true, false));
+                            tvDQ.setTextColor(stundenRechener.wochenstundenanzahl(durchscnittE, true, true));
 
                         }
                     });
