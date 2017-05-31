@@ -68,7 +68,11 @@ public class SettingsFragment extends Fragment {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/*");
 
-        startActivityForResult(intent, 42);
+        if(EasyPermissions.hasPermissions(getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            startActivityForResult(intent, 42);
+        }else {
+        EasyPermissions.requestPermissions(this, "Diese App benötigt Zugriff auf deine Dateien", 50 ,Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
     }
 
     @Override
@@ -87,7 +91,7 @@ public class SettingsFragment extends Fragment {
 
 
 
-                if(EasyPermissions.hasPermissions(getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
                     try {
                         //Diese Konvertierung ist nötig, da man von dem Storage Access Framework
                         //nur eine Content-uri zurück bekommt.
@@ -115,11 +119,22 @@ public class SettingsFragment extends Fragment {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }else {
-                    EasyPermissions.requestPermissions(this, "Diese App benötigt Zugriff auf deine Dateien", 42 ,Manifest.permission.READ_EXTERNAL_STORAGE);
-                }
+
             }
         }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(requestCode==50){
+            openFilePicker();
+        }
+
+        // Forward results to EasyPermissions
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
 }

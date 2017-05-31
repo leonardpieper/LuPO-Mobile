@@ -55,7 +55,7 @@ public class LuPOFragment extends Fragment {
 
     private Database lupoDatabase;
 
-    private View view;
+//    private View view;
     private TableLayout tableLayout;
 
     private boolean onlySelected = false;
@@ -64,11 +64,11 @@ public class LuPOFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        view = inflater.inflate(R.layout.content_main, container, false);
+        View view = inflater.inflate(R.layout.app_bar_main, container, false);
 
-        tableLayout = (TableLayout)view.findViewById(R.id.tableLayoutMain);
+        tableLayout = (TableLayout) view.findViewById(R.id.tableLayoutMain);
 
-        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
