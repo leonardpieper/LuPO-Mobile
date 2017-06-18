@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:minHeight="40dp"
         android:layout_marginBottom="20dp"
+        android:spinnerMode="dialog"
         android:id="@+id/spinner_Kurse" />
 
     <LinearLayout
@@ -282,12 +283,15 @@
 
 
     </TableLayout>
+
     <Button
+        android:id="@+id/btn_add_kurs_finish"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        android:text="Fertig"
-        android:id="@+id/btn_add_kurs_finish"/>
+        style="?android:borderlessButtonStyle"
+        android:textColor="@color/colorAccent"
+        android:text="Fertig" />
 
     <!--<LinearLayout-->
         <!--android:orientation="horizontal"-->

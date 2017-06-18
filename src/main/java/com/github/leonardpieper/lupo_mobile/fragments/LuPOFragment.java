@@ -3,14 +3,19 @@ package com.github.leonardpieper.lupo_mobile.fragments;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,12 +27,14 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.github.leonardpieper.lupo_mobile.MainActivity;
+import com.github.leonardpieper.lupo_mobile.PrintActivity;
 import com.github.leonardpieper.lupo_mobile.R;
 import com.github.leonardpieper.lupo_mobile.tools.Fehlermeldungen;
 import com.github.leonardpieper.lupo_mobile.tools.StundenRechener;
@@ -68,7 +75,7 @@ public class LuPOFragment extends Fragment {
 
         tableLayout = (TableLayout) view.findViewById(R.id.tableLayoutMain);
 
-        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
+        final FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -78,14 +85,46 @@ public class LuPOFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
+        final ScrollView svFacher = (ScrollView)view.findViewById(R.id.main_sv_TableScroll);
+        //Wenn man runterscrollt soll der FAB verschwinden
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            svFacher.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+                @Override
+                public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                    View view = svFacher.getChildAt(svFacher.getChildCount() - 1);
+                    int diff = (view.getBottom() - (svFacher.getHeight() + svFacher.getScrollY()));
+                    if(scrollY > oldScrollY && scrollY > 0){
+                        fab.hide();
+                    }else if(diff <= 10){
+                        fab.hide();
+                    }else {
+                        fab.show();
+                    }
+                }
+            });
+        }
+
+        //FIXME
+        onlySelected = getActivity().getPreferences(Context.MODE_PRIVATE)
+                .getBoolean(getString(R.string.prefs_showOnlySelected), false);
+
         try {
             openLupoDatabase();
-//            Fehlermeldungen fehlermeldungen = new Fehlermeldungen(lupoDatabase);
-//            fehlermeldungen.checkForFehler();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if(item.getItemId() == R.id.action_print){
+                    Intent printIntent = new Intent(getActivity(), PrintActivity.class);
+                    startActivity(printIntent);
+                }
+                return false;
+            }
+        });
 
         return view;
     }
@@ -98,15 +137,19 @@ public class LuPOFragment extends Fragment {
             try {
                 refreshUI(item.isChecked());
                 onlySelected = item.isChecked();
+                SharedPreferences.Editor editor = getActivity().getSharedPreferences(
+                        getString(R.string.prefs_key), Context.MODE_PRIVATE).edit();
+                editor.putBoolean(getString(R.string.prefs_showOnlySelected), item.isChecked());
+                editor.commit();
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return true;
+        }else if(id==R.id.action_print){
+
         }
 
         return super.onOptionsItemSelected(item);
-
-
     }
 
     /**
@@ -349,6 +392,9 @@ public class LuPOFragment extends Fragment {
 
                 String fach = kursSpinner.getItemAtPosition(kursSpinner.getSelectedItemPosition()).toString();
                 addKurs(fach, e1Type, e2Type, q1Type, q2Type, q3Type, q4Type);
+
+                dialog.hide();
+
             }
         });
     }

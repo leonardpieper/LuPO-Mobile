@@ -6,9 +6,9 @@
     <color name="colorPrimaryLight">#6f74dd</color>
 
     <!--Accent Colors-->
-    <color name="colorAccent">#1de9b6</color>
-    <color name="colorAccentDark">#00b686</color>
-    <color name="colorAccentLight">#6effe8</color>
+    <color name="colorAccent">#00bfa5</color>
+    <color name="colorAccentDark">#008e76</color>
+    <color name="colorAccentLight">#5df2d6</color>
 
     <color name="colorBackgroundGreyLight">#E0E0E0</color>
 
