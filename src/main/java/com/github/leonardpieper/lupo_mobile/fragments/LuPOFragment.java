@@ -33,8 +33,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.github.leonardpieper.lupo_mobile.MainActivity;
-import com.github.leonardpieper.lupo_mobile.PrintActivity;
+import com.github.leonardpieper.lupo_mobile.PrintLuPO;
 import com.github.leonardpieper.lupo_mobile.R;
 import com.github.leonardpieper.lupo_mobile.tools.Fehlermeldungen;
 import com.github.leonardpieper.lupo_mobile.tools.StundenRechener;
@@ -53,9 +52,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Created by Leonard on 16.05.2017.
- */
 
 public class LuPOFragment extends Fragment {
     private static final String TAG = "LuPOFragment";
@@ -119,8 +115,11 @@ public class LuPOFragment extends Fragment {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if(item.getItemId() == R.id.action_print){
-                    Intent printIntent = new Intent(getActivity(), PrintActivity.class);
-                    startActivity(printIntent);
+                    try {
+                        printLupo();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 return false;
             }
@@ -551,6 +550,47 @@ public class LuPOFragment extends Fragment {
 
         tableLayout.addView(tableRow);
 
+    }
+
+    private void printLupo() throws IOException {
+        Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
+        PrintLuPO printLuPO = new PrintLuPO(getActivity());
+
+        Column fachKrz = table.getColumn("FachKrz");
+        Column fsJahrgang = table.getColumn("FS_BeginnJg");
+        Column reihenfolge = table.getColumn("Sprachenfolge");
+        Column kursartE1 = table.getColumn("Kursart_E1");
+        Column kursartE2 = table.getColumn("Kursart_E2");
+        Column kursartQ1 = table.getColumn("Kursart_Q1");
+        Column kursartQ2 = table.getColumn("Kursart_Q2");
+        Column kursartQ3 = table.getColumn("Kursart_Q3");
+        Column kursartQ4 = table.getColumn("Kursart_Q4");
+        Column abifach = table.getColumn("AbiturFach");
+
+        for(Row row : table){
+            String sValueFackKrz = Objects.toString(row.get(fachKrz.getName()), "");
+            String sValueFsJahgang = Objects.toString(row.get(fachKrz.getName()), "");
+            String sValueReihenfolge = Objects.toString(row.get(reihenfolge.getName()), "");
+            String sValueKursartE1 = Objects.toString(row.get(kursartE1.getName()), "");
+            String sValueKursartE2 = Objects.toString(row.get(kursartE2.getName()), "");
+            String sValueKursartQ1 = Objects.toString(row.get(kursartQ1.getName()), "");
+            String sValueKursartQ2 = Objects.toString(row.get(kursartQ2.getName()), "");
+            String sValueKursartQ3 = Objects.toString(row.get(kursartQ3.getName()), "");
+            String sValueKursartQ4 = Objects.toString(row.get(kursartQ4.getName()), "");
+            String sValueAbifach = Objects.toString(row.get(abifach.getName()), "");
+
+            printLuPO.addLineToHTML(sValueFackKrz,
+                    sValueFsJahgang,
+                    sValueReihenfolge,
+                    sValueKursartE1,
+                    sValueKursartE2,
+                    sValueKursartQ1,
+                    sValueKursartQ2,
+                    sValueKursartQ3,
+                    sValueKursartQ4,
+                    sValueAbifach);
+        }
+        printLuPO.print();
     }
 
     /**
