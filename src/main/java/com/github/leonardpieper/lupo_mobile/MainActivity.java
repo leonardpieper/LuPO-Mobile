@@ -91,7 +91,6 @@ public class MainActivity extends AppCompatActivity
         LuPOFragment settingsFragment = new LuPOFragment();
         this.getFragmentManager().beginTransaction()
                 .replace(R.id.fragmentContainer, settingsFragment, "Hi")
-                .addToBackStack(null)
                 .commit();
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);

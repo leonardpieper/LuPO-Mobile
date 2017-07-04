@@ -44,6 +44,7 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.leonardpieper.lupo_mobile.PrintLuPO;
 import com.github.leonardpieper.lupo_mobile.R;
@@ -61,7 +62,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -94,7 +97,11 @@ public class LuPOFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openAddKursDialog();
+                if(lupoDatabase!=null){
+                    openAddKursDialog();
+                }else {
+                    Toast.makeText(getActivity(), "Keine LuPO-Datei vorhanden", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -132,37 +139,39 @@ public class LuPOFragment extends Fragment {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                if(item.getItemId() == R.id.action_print){
-                    try {
-                        printLupo();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                if(lupoDatabase!=null) {
+                    if (item.getItemId() == R.id.action_print) {
+                        try {
+                            printLupo();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (item.getItemId() == R.id.action_showChecked) {
+                        item.setChecked(!item.isChecked());
+                        try {
+                            refreshUI(item.isChecked());
+                            onlySelected = item.isChecked();
+                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
+                            editor.putBoolean(getResources().getString(R.string.prefs_showOnlySelected), item.isChecked());
+                            editor.commit();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else if (item.getItemId() == R.id.action_share) {
+                        File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), lupoDatabase.getFile().getName());
+                        System.out.println(filelocation);
+                        Uri path = FileProvider.getUriForFile(getActivity(), "com.github.leonardpieper.lupo_mobile.fileprovider", lupoDatabase.getFile());
+
+                        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+                        emailIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        emailIntent.setType("vvnd.android.cursor.dir/email");
+                        emailIntent.putExtra(Intent.EXTRA_STREAM, path);
+
+                        startActivity(emailIntent);
                     }
-                }else if(item.getItemId() == R.id.action_showChecked){
-                    item.setChecked(!item.isChecked());
-                    try {
-                        refreshUI(item.isChecked());
-                        onlySelected = item.isChecked();
-                        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
-                        editor.putBoolean(getResources().getString(R.string.prefs_showOnlySelected), item.isChecked());
-                        editor.commit();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                }else if(item.getItemId() == R.id.action_share){
-                    File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), lupoDatabase.getFile().getName());
-                    System.out.println(filelocation);
-                    Uri path = FileProvider.getUriForFile(getActivity(), "com.github.leonardpieper.lupo_mobile.fileprovider", lupoDatabase.getFile());
-
-//                    Uri path = Uri.fromFile(lupoDatabase.getFile());
-//                    Uri path = Uri.parse(lupoDatabase.getFile().getAbsolutePath());
-                    Intent emailIntent = new Intent(Intent.ACTION_SEND);
-                    emailIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    emailIntent.setType("vvnd.android.cursor.dir/email");
-                    emailIntent.putExtra(Intent.EXTRA_STREAM, path);
-
-                    startActivity(emailIntent);
+                }else {
+                    Toast.makeText(getActivity(), "Keine LuPO-Datei vorhanden", Toast.LENGTH_SHORT).show();
                 }
                 return false;
             }
@@ -263,6 +272,10 @@ public class LuPOFragment extends Fragment {
                 for(int i = 0; i< grpq4.getChildCount() -1; i++){
                     grpq4.getChildAt(i).setEnabled(true);
                 }
+
+                //In der Q2.2 darf nur das 3. Fach schriftlich sein
+                grpq4.getChildAt(1).setEnabled(false);
+
                 grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.INVISIBLE);
                 grpq2.getChildAt(grpq2.getChildCount()-1).setVisibility(View.INVISIBLE);
                 grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
@@ -334,6 +347,30 @@ public class LuPOFragment extends Fragment {
 
                     tvTitleExtra.setText("LK");
 
+                    /*
+                    TODO: Abifach auf 1 oder 2 setzten, je nach LK
+                     */
+//                    /*
+//                    * Setzt das Abiturfach auf 1 oder 2 und deaktiviert das Eingabefeld dafür
+//                    */
+//                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+//                    boolean erstesAbifachBelegt = sharedPreferences.getBoolean("pref_erstesAbiFach_belegt", false);
+//                    boolean zweitesAbifachBelegt = sharedPreferences.getBoolean("pref_zweitesAbiFach_belegt", false);
+//                    SharedPreferences.Editor editor = sharedPreferences.edit();
+//                    if(!erstesAbifachBelegt){
+//                        etAbifach.setText("1");
+//                        editor.putBoolean("pref_erstesAbiFach_belegt", true);
+//                    }else if(erstesAbifachBelegt&&!zweitesAbifachBelegt){
+//                        etAbifach.setText("2");
+//                        editor.putBoolean("pref_zweitesAbiFach_belegt", true);
+//                    }else{
+//                        Toast toast = Toast.makeText(getActivity(), "Du hast bereits 2 LKs", Toast.LENGTH_SHORT);
+//                        toast.show();
+//                    }
+//                    editor.apply();
+//
+//                    etAbifach.setEnabled(false);
+
                     isZK.setEnabled(false);
                 }else {
                     grpq1.getChildAt(grpq1.getChildCount()-1).setVisibility(View.INVISIBLE);
@@ -341,6 +378,8 @@ public class LuPOFragment extends Fragment {
                     grpq3.getChildAt(grpq3.getChildCount()-1).setVisibility(View.INVISIBLE);
                     grpq4.getChildAt(grpq4.getChildCount()-1).setVisibility(View.INVISIBLE);
                     tvTitleExtra.setVisibility(View.INVISIBLE);
+
+
 
                     isZK.setEnabled(true);
                 }
@@ -374,6 +413,41 @@ public class LuPOFragment extends Fragment {
                     tvTitleExtra.setVisibility(View.INVISIBLE);
                     isLK.setEnabled(true);
                 }
+            }
+        });
+
+        etAbifach.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                if(s.toString().equals("3")){
+                    //Das dritte Abifach muss schriftlich sein
+                    grpq4.getChildAt(0).setEnabled(false);
+                    grpq4.getChildAt(1).setEnabled(true);
+                    ((RadioButton)grpq4.getChildAt(0)).setChecked(false);
+                    ((RadioButton)grpq4.getChildAt(1)).setChecked(true);
+                }else if(s.toString().equals("4")){
+                    //Das vierte Abifach muss schriftlich sein
+                    grpq4.getChildAt(0).setEnabled(true);
+                    grpq4.getChildAt(1).setEnabled(false);
+                    ((RadioButton)grpq4.getChildAt(0)).setChecked(true);
+                    ((RadioButton)grpq4.getChildAt(1)).setChecked(false);
+                }else if(s.toString().equals("1")||s.toString().equals("2")){
+                    grpq4.getChildAt(0).setEnabled(false);
+                    grpq4.getChildAt(1).setEnabled(false);
+                    ((RadioButton)grpq4.getChildAt(0)).setChecked(false);
+                    ((RadioButton)grpq4.getChildAt(1)).setChecked(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
 
@@ -632,6 +706,12 @@ public class LuPOFragment extends Fragment {
 
     private void printLupo() throws IOException {
         Table table = lupoDatabase.getTable("ABP_SchuelerFaecher");
+        Map<String, String> fachname = new HashMap<>();
+
+        for(Row row: lupoDatabase.getTable("ABP_Faecher")){
+            fachname.put(row.getString("FachKrz"), row.getString("Bezeichnung"));
+        }
+
         PrintLuPO printLuPO = new PrintLuPO(getActivity());
 
         Column fachKrz = table.getColumn("FachKrz");
@@ -647,7 +727,7 @@ public class LuPOFragment extends Fragment {
 
         for(Row row : table){
             String sValueFackKrz = Objects.toString(row.get(fachKrz.getName()), "");
-            String sValueFsJahgang = Objects.toString(row.get(fachKrz.getName()), "");
+            String sValueFsJahgang = Objects.toString(row.get(fsJahrgang.getName()), "");
             String sValueReihenfolge = Objects.toString(row.get(reihenfolge.getName()), "");
             String sValueKursartE1 = Objects.toString(row.get(kursartE1.getName()), "");
             String sValueKursartE2 = Objects.toString(row.get(kursartE2.getName()), "");
@@ -657,7 +737,9 @@ public class LuPOFragment extends Fragment {
             String sValueKursartQ4 = Objects.toString(row.get(kursartQ4.getName()), "");
             String sValueAbifach = Objects.toString(row.get(abifach.getName()), "");
 
-            printLuPO.addLineToHTML(sValueFackKrz,
+            String sValueFachname = fachname.get(sValueFackKrz);
+
+            printLuPO.addLineToHTML(sValueFachname,
                     sValueFsJahgang,
                     sValueReihenfolge,
                     sValueKursartE1,

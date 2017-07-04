@@ -297,6 +297,7 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/radioQ4S"
                     android:tag="S"
+                    android:enabled="false"
                     android:layout_marginLeft="25dp"/>
                 <RadioButton
                     android:layout_width="wrap_content"

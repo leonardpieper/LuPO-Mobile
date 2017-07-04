@@ -98,6 +98,7 @@ public class PrintLuPO{
 
         htmlPage = htmlPage.replace("$LuPOContent", lupoContent);
         htmlPage = htmlPage.replace("$DateAndTime", dateFormat.format(date));
+        htmlPage = htmlPage.replace("$Beratungsfehler", "");
 
 
 
