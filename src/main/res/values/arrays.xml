@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sprachenFolge">
+        <item>1.Fremdsprache</item>
+        <item>2.Fremdsprache</item>
+        <item>3.Fremdsprache</item>
+        <item>4.Fremdsprache</item>
+        <item>Sprachprüfung</item>
+        <item>Nachweis</item>
+    </string-array>
+
+    <string-array name="spracheJahrg">
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>EF</item>
+    </string-array>
+</resources>

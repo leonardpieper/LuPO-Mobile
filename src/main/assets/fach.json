@@ -1,0 +1,169 @@
+{
+    /* 
+    Deutsch muss von EF.1 bis Q2.2 belegt werden.
+    */
+    "1": {
+        "courses": [
+            "D"
+        ],
+        "from": [
+            "EF1"
+        ],
+        "to": [
+            "Q4"
+        ]
+    },
+    /* 
+    Mindestens eine Fremdsprache muss von EF.1 bis Q2.2 durchgehend belegt werden.
+    Handelt es sich hierbei um eine neu einsetzende Fremdsprache, so muss zusätzlich mindestens eine aus der SI fortgeführte Fremdsprache von EF.1 bis EF.2 belegt werden.
+    */
+    "2": {
+        "courses": [
+            "GE"
+        ],
+        "from": [
+            "EF1",
+            "Q3,"
+        ],
+        "to": [
+            "Q2",
+            "Q4"
+        ]
+    },
+    /*
+    Mindestens eines der Fächer Kunst oder Musik muss von EF.1 bis wenigstens Q1.2 durchgehend belegt werden.
+    In der Qualifikationsphase kann auch alternativ Literatur, ein vokalpraktisches oder ein instrumentalpraktisches Fach mit zwei Kursen belegt werden.
+    */
+    "3": {
+        "courses": [
+            "MU",
+            "KU",
+            "LT",
+            "VP",
+            "IP"
+        ],
+        "from": [
+            "EF1"
+        ],
+        "to": [
+            "Q2"
+        ]
+    },
+    /*
+    Mindestens eine Gesellschaftswissenschaft muss von Q1.1 bis Q2.2 durchgehend belegt werden.
+    */
+    "4": {
+        "courses": [
+            "GE",
+            "SW",
+            "RK",
+            "PS",
+            "PA",
+            "SL",
+            "EK"
+        ],
+        "from": [
+            "EF1"
+        ],
+        "to": [
+            "Q4"
+        ]
+    },
+    /*
+    Geschichte muss von EF.1 bis wenigstens Q1.2 oder als Zusatzkurs (in der Regel von Q2.1 bis Q2.2) belegt werden.
+    */
+    "5": {
+        "courses": [
+            "GE"
+        ],
+        "from": [
+            "EF1",
+            "Q3,"
+        ],
+        "to": [
+            "Q2",
+            "Q4"
+        ]
+    },
+    /*
+    Sozialwissenschaften muss von EF.1 bis wenigstens Q1.2 oder als Zusatzkurs (in der Regel von Q2.1 bis Q2.2) belegt werden.
+    */
+    "6": {
+        "courses": [
+            "SW"
+        ],
+        "from": [
+            "EF1",
+            "Q3,"
+        ],
+        "to": [
+            "Q2",
+            "Q4"
+        ]
+    },
+    /*
+    Religionslehre muss wenigstens von EF.1-Q1.2 durchgehend belegt werden
+    Als Ersatz kann Philosophie dienen, sofern Philosophie nicht die einzige von EF.1 bis Q2.2 durchgehend belegte Gesellschaftswissenschaft ist.
+    In diesen Fällen muss ein weiteres Fach der Gesellschaftswissenschaften als Religionsersatz dienen.
+    */
+    "7": {
+        "courses": [
+            "ER",
+            "KR",
+            "YR",
+            "OR",
+            "HR",
+            "PL"
+        ],
+        "from": [
+            "EF1"
+        ],
+        "to": [
+            "Q2"
+        ]
+    },
+    /*
+    Mathematik muss von EF.1 bis Q2.2 belegt werden.
+    */
+    "8": {
+        "courses": [
+            "M"
+        ],
+        "from": [
+            "EF1"
+        ],
+        "to": [
+            "Q4"
+        ]
+    },
+    /*
+    Mindestens eine klassische Naturwissenschaft (Physik, Biologie, Chemie) muss durchgehend von Q1.1 bis Q2.2 belegt werden.
+    */
+    "9": {
+        "courses": [
+            "PH",
+            "BI",
+            "CH"
+        ],
+        "from": [
+            "EF1"
+        ],
+        "to": [
+            "Q4"
+        ]
+    },
+    /*
+    Sport muss von EF.1 bis Q2.2 belegt werden.
+    */
+    "10": {
+        "courses": [
+            "SP"
+        ],
+        "from": [
+            "EF1"
+        ],
+        "to": [
+            "Q4"
+        ]
+    }
+}

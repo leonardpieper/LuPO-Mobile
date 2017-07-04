@@ -5,17 +5,26 @@ import com.healthmarketscience.jackcess.CursorBuilder;
 import com.healthmarketscience.jackcess.Database;
 import com.healthmarketscience.jackcess.Row;
 import com.healthmarketscience.jackcess.Table;
+import com.healthmarketscience.jackcess.util.CaseInsensitiveColumnMatcher;
+import com.healthmarketscience.jackcess.util.ColumnMatcher;
+import com.healthmarketscience.jackcess.util.SimpleColumnMatcher;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class Fehlermeldungen {
+    private Database database;
     private Table tableSchuelerFaecher;
 
     public Fehlermeldungen(Database database) throws IOException {
+        this.database = database;
         tableSchuelerFaecher = database.getTable("ABP_SchuelerFaecher");
     }
 
@@ -55,6 +64,26 @@ public class Fehlermeldungen {
         }
         else if(!zweiLKs()){
             return "Es müssen zwei Fächer als Leistungskurse gewählt werden";
+        }else if(!siebenGKs()){
+            return "In der Qualifikationsphase sind pro Halbjahr mindestens 7 Fächer in Grundkursen zu wählen.";
+        }else if(!fremdsprache()){
+            return "Mindestens eine Fremdsprache muss von EF.1 bis Q2.2 durchgehend belegt werden. Handelt es sich hierbei um eine neu einsetzende Fremdsprache, so muss zusätzlich mindestens eine aus der SI fortgeführte Fremdsprache von EF.1 bis EF.2 belegt werden.";
+        }
+        else if(!schwerpunktVorhanden()){
+            return "Von EF.1 bis Q2.2 müssen entweder zwei Naturwissenschaften oder zwei Fremdsprachen durchgehend belegt werden. Hierbei ist eine Naturwissenschaft oder sind zwei Fremsprachen schriftlich zu belegen.Zu den Fremdsprachen zählen auch in einer weiteren Fremdsprache unterrichtete Sachfächer.";
+        }
+
+        //Klausurverpflichtungen:
+        else if(!schriftlichVonEF1BisQ3("D")){
+            return "Deutsch muss von EF.1 bis wenigstens Q2.1 schriftlich belegt werden.";
+        }else if(!schriftlichVonEF1BisQ3("M")){
+            return "Mathematik muss von EF.1 bis wenigstens Q2.1 schriftlich belegt werden.";
+        }else if (!schriftlichFSEF1BisQ3()){
+            return "Mindestens eine durchgehend belegte Fremdsprache muss von EF.1 bis Q2.1 schriftlich sein.";
+        }else if(!schriftlichGSEF1BisQ3()){
+            return "Mindestens eine Gesellschaftswissenschaft oder Religionslehre muss von EF.1 bis wenigstens Q2.1 schriftlich belegt werden.";
+        }else if(!schriftlichNWEF1bisEF2()){
+            return "In EF.1 und EF.2 muss mindestens eine klassische Naturwissenschaft schriftlich belegt sein.";
         }
         return null;
     }
@@ -75,6 +104,24 @@ public class Fehlermeldungen {
                     &&row.getString("Kursart_Q2")!=null
                     &&row.getString("Kursart_Q3")!=null
                     &&row.getString("Kursart_Q4")!=null){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Überprüft, ob ein Fach von EF.1 bis Q1.2 durchgängig belegt ist
+     * @return Liefert true, wenn ein Fach durchgängig belegt ist.
+     * @throws IOException
+     */
+    private boolean fachVonEF1BisEF2(String fachAbk) throws IOException {
+        Cursor cursor = CursorBuilder.createCursor(tableSchuelerFaecher);
+        boolean found = cursor.findFirstRow(Collections.singletonMap("FachKrz", fachAbk));
+        if(found){
+            Row row = cursor.getCurrentRow();
+            if(row.getString("Kursart_E1")!=null
+                    &&row.getString("Kursart_E2")!=null){
                 return true;
             }
         }
@@ -187,6 +234,258 @@ public class Fehlermeldungen {
         boolean found = cursor.findFirstRow(Collections.singletonMap("Kursart_Q1", "LK"));
         if(found){
             if(cursor.findNextRow(Collections.singletonMap("Kursart_Q1", "LK"))){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean siebenGKs() throws IOException{
+        int gks[] = new int[4];
+        String jahrgang = null;
+        for(Row row: tableSchuelerFaecher) {
+            for (int i = 0; i < 4; i++) {
+                switch (i) {
+                    case 0:
+                        jahrgang = "Q1";
+                        break;
+                    case 1:
+                        jahrgang = "Q2";
+                        break;
+                    case 2:
+                        jahrgang = "Q3";
+                        break;
+                    case 3:
+                        jahrgang = "Q4";
+                        break;
+                }
+                String kursart = Objects.toString(row.getString("Kursart_"+jahrgang), "");
+                if(kursart.equalsIgnoreCase("s") || kursart.equalsIgnoreCase("m")){
+                    gks[i]++;
+                }
+            }
+        }
+        if(gks[0]>=7&&gks[1]>=7&&gks[2]>=3){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean fremdsprache() throws IOException{
+        String kursart = null;
+        for(int i = 0; i<4; i++){
+            switch (i){
+                case 0: kursart="E"; break;
+                case 1: kursart="F"; break;
+                case 2: kursart="L"; break;
+                case 3: kursart="S"; break;
+            }
+            if(fachVonEF1BisQ4(kursart)){
+                return true;
+            }
+        }
+
+        for(int i = 0; i<9; i++){
+            switch (i){
+                case 0: kursart="S1"; break;
+                case 1: kursart="L1"; break;
+                case 2: kursart="H1"; break;
+                case 3: kursart="T1"; break;
+                case 4: kursart="I1"; break;
+                case 5: kursart="R1"; break;
+                case 6: kursart="G1"; break;
+                case 7: kursart="K1"; break;
+                case 8: kursart="C1"; break;
+            }
+            if(fachVonEF1BisQ4(kursart)){
+                for(int j = 0; j<4; j++){
+                    switch (i){
+                        case 0: kursart="E"; break;
+                        case 1: kursart="F"; break;
+                        case 2: kursart="L"; break;
+                        case 3: kursart="S"; break;
+                    }
+                    if(fachVonEF1BisEF2(kursart)){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean schwerpunktVorhanden() throws IOException{
+        String kursart = null;
+        boolean eineNWoderFS = false;
+
+        //2 Naturwissenschaften müssen belegt werden
+        for(int i=0; i<7; i++){
+            switch (i){
+                case 0: kursart="BI"; break;
+                case 1: kursart="PH"; break;
+                case 2: kursart="CH"; break;
+                case 3: kursart="NW"; break;
+                case 4: kursart="EL"; break;
+                case 5: kursart="IF"; break;
+                case 6: kursart="TC"; break;
+            }
+            if(fachVonEF1BisQ4(kursart)){
+                if(eineNWoderFS){
+                    return true;
+                }
+                eineNWoderFS=true;
+            }
+        }
+
+        //Alternativ: 2 Fremdsprachen müssen belegt werden#
+        eineNWoderFS=false;
+
+        for(int i=0; i<13; i++){
+            switch (i){
+                case 0: kursart="E"; break;
+                case 1: kursart="F"; break;
+                case 2: kursart="L"; break;
+                case 3: kursart="S"; break;
+                case 4: kursart="S1"; break;
+                case 5: kursart="L1"; break;
+                case 6: kursart="H1"; break;
+                case 7: kursart="T1"; break;
+                case 8: kursart="I1"; break;
+                case 9: kursart="R1"; break;
+                case 10: kursart="G1"; break;
+                case 11: kursart="K1"; break;
+                case 12: kursart="C1"; break;
+            }
+            if(fachVonEF1BisQ4(kursart)){
+                if(eineNWoderFS){
+                    return true;
+                }
+                eineNWoderFS=true;
+            }
+        }
+
+        //Extra der Alternative: Auch Bilinguale Fächer zählen:
+        for(Row row : tableSchuelerFaecher){
+            String unterichtssprache = Objects.toString(row.get("Unterichtssprache"), "");
+            if(!unterichtssprache.equalsIgnoreCase("d") && !unterichtssprache.isEmpty()){
+                if(eineNWoderFS){
+                    return true;
+                }
+                eineNWoderFS=true;
+            }
+        }
+
+
+        return false;
+
+    }
+
+    /*
+        |
+        | Klausurverpflichtungen
+        V
+     */
+
+    private boolean schriftlichVonEF1BisQ3(String fachAbk) throws IOException {
+        Cursor cursor = CursorBuilder.createCursor(tableSchuelerFaecher);
+        boolean found = cursor.findFirstRow(Collections.singletonMap("FachKrz", fachAbk));
+        if (found){
+            Row row = cursor.getCurrentRow();
+            if(row.getString("Kursart_E1")!=null
+                    &&row.getString("Kursart_E1").equals("S")
+                    &&row.getString("Kursart_E2")!=null
+                    &&row.getString("Kursart_E2").equals("S")
+                    &&row.getString("Kursart_Q1")!=null
+                    &&(row.getString("Kursart_Q1").equals("S")
+                        || row.getString("Kursart_Q1").equals("LK"))
+                    &&row.getString("Kursart_Q2")!=null
+                    &&(row.getString("Kursart_Q2").equals("S")
+                        || row.getString("Kursart_Q1").equals("LK"))
+                    &&row.getString("Kursart_Q3")!=null
+                    &&(row.getString("Kursart_Q3").equals("S")
+                        || row.getString("Kursart_Q1").equals("LK"))){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean schriftlichVonEF1BisEF2(String fachAbk) throws IOException {
+        Cursor cursor = CursorBuilder.createCursor(tableSchuelerFaecher);
+        boolean found = cursor.findFirstRow(Collections.singletonMap("FachKrz", fachAbk));
+        if (found){
+            Row row = cursor.getCurrentRow();
+            if(row.getString("Kursart_E1")!=null
+                    &&row.getString("Kursart_E1").equals("S")
+                    &&row.getString("Kursart_E2")!=null
+                    &&row.getString("Kursart_E2").equals("S")){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean schriftlichFSEF1BisQ3() throws IOException {
+        String kursart = null;
+        for(int i=0; i<13; i++) {
+            switch (i) {
+                case 0:kursart = "E";break;
+                case 1:kursart = "F";break;
+                case 2:kursart = "L";break;
+                case 3:kursart = "S";break;
+                case 4:kursart = "S1";break;
+                case 5:kursart = "L1";break;
+                case 6:kursart = "H1";break;
+                case 7:kursart = "T1";break;
+                case 8:kursart = "I1";break;
+                case 9:kursart = "R1";break;
+                case 10:kursart = "G1";break;
+                case 11:kursart = "K1";break;
+                case 12:kursart = "C1";break;
+            }
+            if (schriftlichVonEF1BisQ3(kursart)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean schriftlichGSEF1BisQ3() throws IOException {
+        String kursart = null;
+        for(int i=0; i<15; i++) {
+            switch (i) {
+                case 0:kursart = "PK";break;
+                case 1:kursart = "PA";break;
+                case 2:kursart = "EK";break;
+                case 3:kursart = "RK";break;
+                case 4:kursart = "SW";break;
+                case 5:kursart = "SL";break;
+                case 6:kursart = "GE";break;
+                case 7:kursart = "PS";break;
+                case 8:kursart = "GP";break;
+                case 9:kursart = "GW";break;
+                case 10:kursart = "YR";break;
+                case 11:kursart = "KR";break;
+                case 12:kursart = "OR";break;
+                case 13:kursart = "ER";break;
+                case 14:kursart = "HR";break;
+            }
+            if (schriftlichVonEF1BisQ3(kursart)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean schriftlichNWEF1bisEF2() throws IOException {
+        String kursart = null;
+        for(int i=0; i<3; i++) {
+            switch (i) {
+                case 0: kursart="BI"; break;
+                case 1: kursart="PH"; break;
+                case 2: kursart="CH"; break;
+            }
+            if (schriftlichVonEF1BisEF2(kursart)) {
                 return true;
             }
         }

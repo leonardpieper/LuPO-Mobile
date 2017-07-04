@@ -5,12 +5,23 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.Spanned;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -24,6 +35,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -62,6 +74,13 @@ public class LuPOFragment extends Fragment {
     private TableLayout tableLayout;
 
     private boolean onlySelected = false;
+    private Menu menu;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -100,9 +119,8 @@ public class LuPOFragment extends Fragment {
             });
         }
 
-        //FIXME
-        onlySelected = getActivity().getPreferences(Context.MODE_PRIVATE)
-                .getBoolean(getString(R.string.prefs_showOnlySelected), false);
+
+        onlySelected = PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean(getResources().getString(R.string.prefs_showOnlySelected), false);
 
         try {
             openLupoDatabase();
@@ -120,6 +138,31 @@ public class LuPOFragment extends Fragment {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                }else if(item.getItemId() == R.id.action_showChecked){
+                    item.setChecked(!item.isChecked());
+                    try {
+                        refreshUI(item.isChecked());
+                        onlySelected = item.isChecked();
+                        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
+                        editor.putBoolean(getResources().getString(R.string.prefs_showOnlySelected), item.isChecked());
+                        editor.commit();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }else if(item.getItemId() == R.id.action_share){
+                    File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), lupoDatabase.getFile().getName());
+                    System.out.println(filelocation);
+                    Uri path = FileProvider.getUriForFile(getActivity(), "com.github.leonardpieper.lupo_mobile.fileprovider", lupoDatabase.getFile());
+
+//                    Uri path = Uri.fromFile(lupoDatabase.getFile());
+//                    Uri path = Uri.parse(lupoDatabase.getFile().getAbsolutePath());
+                    Intent emailIntent = new Intent(Intent.ACTION_SEND);
+                    emailIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    emailIntent.setType("vvnd.android.cursor.dir/email");
+                    emailIntent.putExtra(Intent.EXTRA_STREAM, path);
+
+                    startActivity(emailIntent);
                 }
                 return false;
             }
@@ -128,27 +171,11 @@ public class LuPOFragment extends Fragment {
         return view;
     }
 
+
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_showChecked) {
-            item.setChecked(!item.isChecked());
-            try {
-                refreshUI(item.isChecked());
-                onlySelected = item.isChecked();
-                SharedPreferences.Editor editor = getActivity().getSharedPreferences(
-                        getString(R.string.prefs_key), Context.MODE_PRIVATE).edit();
-                editor.putBoolean(getString(R.string.prefs_showOnlySelected), item.isChecked());
-                editor.commit();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return true;
-        }else if(id==R.id.action_print){
-
-        }
-
-        return super.onOptionsItemSelected(item);
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        this.menu = menu;
     }
 
     /**
@@ -165,6 +192,7 @@ public class LuPOFragment extends Fragment {
 
 
         final List<String> faecher = new ArrayList<>();
+        final List<String> faecherAbk = new ArrayList<>();
 
         try {
             Table table = lupoDatabase.getTable("ABP_Faecher");
@@ -176,7 +204,10 @@ public class LuPOFragment extends Fragment {
                 Object bezeichnung = row.get(colBezeichnung.getName());
 
                 String sBezeichnung = Objects.toString(bezeichnung, "");
+                String sKrzl = Objects.toString(fachKrzl, "");
+
                 faecher.add(sBezeichnung);
+                faecherAbk.add(sKrzl);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -186,6 +217,11 @@ public class LuPOFragment extends Fragment {
         final ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, faecher);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         kursSpinner.setAdapter(spinnerArrayAdapter);
+
+        final EditText etAbifach = (EditText)dialog.findViewById(R.id.etAbifach);
+
+        final Spinner sprFolgeSpinner = (Spinner)dialog.findViewById(R.id.dialog_addKurs_spinner_sprFolge);
+        final Spinner sprJahrgSpinner = (Spinner)dialog.findViewById(R.id.dialog_addKurs_spinner_sprJahrg);
 
         final TextView tvTitleExtra = (TextView)dialog.findViewById(R.id.tvDialogAddKursExtra);
         final RadioGroup grpe1 = (RadioGroup)dialog.findViewById(R.id.radioGrpEF1);
@@ -240,7 +276,18 @@ public class LuPOFragment extends Fragment {
                 }
 
 
+
+
                 try {
+                    //Nur wenn eine Sprache ausgewählt wurde, soll auch das Interface dafür angezeigt werden
+                    if(isFS(faecherAbk.get(position))){
+                        sprFolgeSpinner.setVisibility(View.VISIBLE);
+                        sprJahrgSpinner.setVisibility(View.VISIBLE);
+                    }else {
+                        sprFolgeSpinner.setVisibility(View.GONE);
+                        sprJahrgSpinner.setVisibility(View.GONE);
+                    }
+
                     if(!isLKAvailable(spinnerArrayAdapter.getItem(position))){
                         llLK.setVisibility(View.GONE);
                     }
@@ -388,9 +435,17 @@ public class LuPOFragment extends Fragment {
                     q4Type = "LK";
                 }
 
+                int abiFach = 0;
+                if(!etAbifach.getText().toString().equals("")){
+                     abiFach = Integer.parseInt(etAbifach.getText().toString());
+                }
+
+
+                String sprFolge = sprFolgeSpinner.getSelectedItem().toString().substring(0, 1).replace("S", "P");
+                String sprJahrg= sprJahrgSpinner.getSelectedItem().toString().replace("EF", "10");
 
                 String fach = kursSpinner.getItemAtPosition(kursSpinner.getSelectedItemPosition()).toString();
-                addKurs(fach, e1Type, e2Type, q1Type, q2Type, q3Type, q4Type);
+                addKurs(fach, sprFolge, sprJahrg, e1Type, e2Type, q1Type, q2Type, q3Type, q4Type, abiFach);
 
                 dialog.hide();
 
@@ -401,16 +456,18 @@ public class LuPOFragment extends Fragment {
     /**
      * Fügt einen Kurs in die Datenbank ein.
      * @param fach Fach ist der Fachname
-     * @param e1Type E1Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     * @param e2Type E2Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     * @param q1Type Q1Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
-     * @param q2Type Q2Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
+     * @param e1Type E1Type beschreibt, ob das Fach mündl.-, schriftl. gewählt wurde.
+     * @param e2Type E2Type beschreibt, ob das Fach mündl.-, schriftl. gewählt wurde.
+     * @param q1Type Q1Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK wurde.
+     * @param q2Type Q2Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK wurde.
      * @param q3Type Q3Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
      * @param q4Type Q4Type beschreibt, ob das Fach mündl.-, schriftl.-, als LK oder ZK gewählt wurde.
      */
-    private void addKurs(String fach, String e1Type, String e2Type,
+    private void addKurs(String fach, String sprFolge, String sprJahrg,
+                         String e1Type, String e2Type,
                          String q1Type, String q2Type,
-                         String q3Type, String q4Type){
+                         String q3Type, String q4Type,
+                         int abifach){
 
         Log.d(TAG, "Fach: " + fach + "EF.1: " + e1Type + "EF.2: " + e2Type
                 + "Q1.1: " + q1Type + "Q1.2: " + q2Type
@@ -437,6 +494,17 @@ public class LuPOFragment extends Fragment {
                 row.put("Kursart_Q3", q3Type);
                 row.put("Kursart_Q4", q4Type);
 
+                if(abifach!=0){
+                    row.put("AbiturFach", abifach);
+                }
+
+                if(sprFolge!=null&&!sprFolge.isEmpty()){
+                    row.put("Sprachenfolge", sprFolge);
+                }
+                if(sprJahrg!=null&&!sprJahrg.isEmpty()){
+                    row.put("FS_BeginnJg", sprJahrg);
+                }
+
                 table.updateRow(row);
                 refreshUI(onlySelected);
             }
@@ -445,6 +513,16 @@ public class LuPOFragment extends Fragment {
             e.printStackTrace();
         }
 
+    }
+
+    private boolean isFS(String fachabk) throws IOException {
+        Cursor cursor = CursorBuilder.createCursor(lupoDatabase.getTable("ABP_Fachgruppen"));
+        if(cursor.findFirstRow(Collections.singletonMap("Fach", fachabk))){
+            if(cursor.getCurrentRow().get("FachgruppeKrz").equals("FS")){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -649,7 +727,7 @@ public class LuPOFragment extends Fragment {
             }
         }
         refreshWochenStunden();
-        getFehler();
+//        getFehler();
     }
 
     /**
@@ -663,6 +741,9 @@ public class LuPOFragment extends Fragment {
             @Override
             public void run() {
                 try {
+                    Fehlermeldungen fehlermeldungen = new Fehlermeldungen(lupoDatabase);
+                    final String s = fehlermeldungen.checkForFehler();
+
                     final StundenRechener stundenRechener = new StundenRechener(getActivity(), lupoDatabase);
                     final int wochenStundenE1 = stundenRechener.getWochenstunden("Kursart_E1");
                     final int wochenStundenE2 = stundenRechener.getWochenstunden("Kursart_E2");
@@ -676,6 +757,13 @@ public class LuPOFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            if(s!=null) {
+                                ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setVisibility(View.VISIBLE);
+                                ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setText(s);
+                            }else {
+                            ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setVisibility(View.GONE);
+                            }
+
                             TextView tvWE1 =  (TextView) getActivity().findViewById(R.id.tvInfoWochenStdE1);
                             TextView tvWE2 =  (TextView) getActivity().findViewById(R.id.tvInfoWochenStdE2);
                             TextView tvWQ1 = (TextView) getActivity().findViewById(R.id.tvInfoWochenStdQ1);
@@ -704,7 +792,7 @@ public class LuPOFragment extends Fragment {
                             tvWQ4.setTextColor(stundenRechener.wochenstundenanzahl(wochenStundenQ4, false, true));
 
                             tvDE.setTextColor(stundenRechener.wochenstundenanzahl(durchscnittE, true, false));
-                            tvDQ.setTextColor(stundenRechener.wochenstundenanzahl(durchscnittE, true, true));
+                            tvDQ.setTextColor(stundenRechener.wochenstundenanzahl(durchscnittQ, true, true));
 
                         }
                     });
@@ -716,31 +804,31 @@ public class LuPOFragment extends Fragment {
         }).start();
     }
 
-    private void getFehler(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Fehlermeldungen fehlermeldungen = new Fehlermeldungen(lupoDatabase);
-                    final String s = fehlermeldungen.checkForFehler();
-
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(s!=null) {
-                                ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setVisibility(View.VISIBLE);
-                                ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setText(s);
-                            }else {
-                            ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setVisibility(View.GONE);
-                            }
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
+//    private void getFehler(){
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    Fehlermeldungen fehlermeldungen = new Fehlermeldungen(lupoDatabase);
+//                    final String s = fehlermeldungen.checkForFehler();
+//
+//                    getActivity().runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            if(s!=null) {
+//                                ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setVisibility(View.VISIBLE);
+//                                ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setText(s);
+//                            }else {
+//                            ((TextView) getActivity().findViewById(R.id.tvFehlermeldungen)).setVisibility(View.GONE);
+//                            }
+//                        }
+//                    });
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
+//    }
 
     /**
      * Prüft ob ein LK in einem Fach gewählt werden kann

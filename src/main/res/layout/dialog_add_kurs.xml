@@ -27,11 +27,38 @@
             android:textSize="16sp"
             android:gravity="center"/>
         <CheckBox
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/checkBoxIsLK"
             android:layout_marginLeft="20dp"
             android:gravity="center"/>
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/etAbifach"
+            android:layout_marginLeft="20dp"
+            android:hint="Abifach"
+            android:inputType="numberDecimal"
+            android:maxLength="1"
+            android:digits="1234"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:id="@+id/llSprachen">
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_addKurs_spinner_sprFolge"
+            android:entries="@array/sprachenFolge"
+            android:visibility="gone"/>
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_addKurs_spinner_sprJahrg"
+            android:entries="@array/spracheJahrg"
+            android:visibility="gone"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
