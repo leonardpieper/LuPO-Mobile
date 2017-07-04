@@ -63,6 +63,10 @@ public class Fehlermeldungen {
             return "Von EF.1 bis Q2.2 müssen entweder zwei Naturwissenschaften oder zwei Fremdsprachen durchgehend belegt werden. Hierbei ist eine Naturwissenschaft oder sind zwei Fremsprachen schriftlich zu belegen.Zu den Fremdsprachen zählen auch in einer weiteren Fremdsprache unterrichtete Sachfächer.";
         } else if (!fachHinzugewählt()) {
             return "Bis auf Literatur, vokal- und instrumentalpraktische Kurse, Zusatzkurse, Vertiefungsfächer und Projektkurse können keine Fächer hinzugewählt werden, die nicht schon ab EF.1 belegt wurden.";
+        } else if(!abifachJedesAufgabenfeld()){
+            return "Die Abiturfächer müssen alle drei Aufgabenfelder abdecken. Insgesamt sind vier Abiturfächer zu belegen.";
+        } else if(!hauptfacherInAbifach()){
+            return "Unter den vier Abiturfächern müssen zwei der Fächer Deutsch, Mathematik oder Fremdsprache sein.";
         }
 
         //Klausurverpflichtungen:
@@ -684,6 +688,11 @@ public class Fehlermeldungen {
 
     private boolean fachHinzugewählt() {
         for (Row row : tableSchuelerFaecher) {
+            if(row.get("FachKrz").toString().equals("LI")
+                    ||row.get("FachKrz").toString().equals("IP")
+                    ||row.get("FachKrz").toString().equals("VP")){
+                continue;
+            }
             if ((row.get("Kursart_Q4") != null
                     && (row.get("Kursart_Q3") == null
                     || row.get("Kursart_Q2") == null
@@ -713,6 +722,47 @@ public class Fehlermeldungen {
             }         }
         System.out.println("Hallo");
         return true;
+    }
+
+    private boolean abifachJedesAufgabenfeld() throws IOException {
+        boolean FSMSAgf = false;
+        boolean SWAgf = false;
+        boolean NWAgf = false;
+        Cursor cursor = CursorBuilder.createCursor(tableSchuelerFaecher);
+        for(int i = 0; i<=4; i++){
+            if(cursor.findFirstRow(Collections.singletonMap("AbiturFach", Integer.toString(i)))){
+                int agf = cursor.getCurrentRow().getInt("Aufgabenfeld");
+                if(agf<=3){
+                    FSMSAgf=true;
+                }else if(agf==5){
+                    SWAgf=true;
+                }else if(agf==7||agf==8){
+                    NWAgf=true;
+                }
+            }
+        }
+
+        if(FSMSAgf&&SWAgf&&NWAgf){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hauptfacherInAbifach() throws IOException {
+        int hauptfacher = 0;
+        Cursor cursor = CursorBuilder.createCursor(tableSchuelerFaecher);
+        for(int i = 0; i<=4; i++){
+            if(cursor.findFirstRow(Collections.singletonMap("AbiturFach", Integer.toString(i)))){
+                int agf = cursor.getCurrentRow().getInt("Aufgabenfeld");
+                if(agf<=2||agf==7){
+                    hauptfacher++;
+                    if(hauptfacher==2){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private boolean fachInJahrgangBelegt(String fachAbk, String jahrgang) throws IOException {

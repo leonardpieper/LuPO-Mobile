@@ -570,13 +570,19 @@ public class LuPOFragment extends Fragment {
 
                 if(abifach!=0){
                     row.put("AbiturFach", abifach);
+                }else {
+                    row.put("AbiturFach", null);
                 }
 
                 if(sprFolge!=null&&!sprFolge.isEmpty()){
                     row.put("Sprachenfolge", sprFolge);
+                }else{
+                    row.put("Sprachenfolge", null);
                 }
                 if(sprJahrg!=null&&!sprJahrg.isEmpty()){
                     row.put("FS_BeginnJg", sprJahrg);
+                }else {
+                    row.put("FS_BeginnJg", null);
                 }
 
                 table.updateRow(row);
